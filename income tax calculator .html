@@ -1,0 +1,553 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Income Tax Calculator (AY 2025-26)</title>
+    <style>
+        /* --- Base Styles & Variables --- */
+        :root {
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            --transition-speed-fast: 0.3s;
+            --transition-speed-med: 0.5s;
+            --transition-speed-slow: 0.8s;
+            --easing-curve: cubic-bezier(0.25, 0.8, 0.25, 1);
+
+            /* Light Theme (Default) */
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --primary-color: #007bff;
+            --primary-color-rgb: 0, 123, 255;
+            --secondary-color: #6c757d;
+            --accent-color: #17a2b8;
+            --accent-color-rgb: 23, 162, 184;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --card-bg: #ffffff;
+            --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --glow-color: rgba(0, 123, 255, 0.5);
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --chart-bar-color: var(--primary-color);
+            --chart-label-color: var(--secondary-color);
+            --toggle-bg: #ccc;
+            --toggle-knob: #fff;
+            --toggle-active-bg: var(--primary-color);
+        }
+
+        body.dark-mode {
+            /* Dark Theme */
+            --bg-color: #1a1a1a;
+            --text-color: #e9ecef;
+            --primary-color: #0d6efd; /* Slightly brighter blue for dark mode */
+             --primary-color-rgb: 13, 110, 253;
+            --secondary-color: #adb5bd;
+            --accent-color: #20c997; /* Teal/Cyan variant */
+            --accent-color-rgb: 32, 201, 151;
+            --input-bg: #2c2c2c;
+            --input-border: #444;
+            --card-bg: #252525;
+            --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            --glow-color: rgba(13, 110, 253, 0.6);
+            --success-color: #198754;
+            --error-color: #f86c6b;
+            --chart-bar-color: var(--primary-color);
+            --chart-label-color: var(--secondary-color);
+            --toggle-bg: #555;
+            --toggle-knob: #ddd;
+            --toggle-active-bg: var(--primary-color);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+             font-size: 16px; /* Base font size */
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top */
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            transition: background-color var(--transition-speed-med) ease, color var(--transition-speed-med) ease;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px; /* Max width for larger screens */
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 2rem;
+            position: relative; /* For absolute positioned elements like theme toggle */
+            transition: background-color var(--transition-speed-med) ease, box-shadow var(--transition-speed-med) ease;
+            overflow: hidden; /* Crucial for cinematic transition */
+        }
+
+        /* --- Theme Toggle --- */
+        .theme-toggle {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem; /* Adjust size */
+            color: var(--text-color);
+            transition: color var(--transition-speed-fast) ease, transform var(--transition-speed-fast) ease;
+            padding: 0;
+            line-height: 1;
+        }
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+        .theme-toggle .icon {
+             display: inline-block;
+             transition: transform var(--transition-speed-med) ease-in-out;
+        }
+        .dark-mode .theme-toggle .icon-moon { display: none; }
+        .light-mode .theme-toggle .icon-sun { display: none; }
+        body.dark-mode .theme-toggle .icon { transform: rotate(360deg); }
+
+
+        /* --- Header --- */
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+            font-weight: 600;
+            transition: color var(--transition-speed-med) ease;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 2.5rem;
+            font-size: 0.9rem;
+            transition: color var(--transition-speed-med) ease;
+        }
+
+        /* --- Form & Inputs --- */
+        .tax-form {
+            display: grid;
+            gap: 1.75rem;
+            transition: opacity var(--transition-speed-med) var(--easing-curve), transform var(--transition-speed-med) var(--easing-curve);
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tax-form.fade-out {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none; /* Disable interaction during transition */
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            transition: color var(--transition-speed-med) ease;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: border-color var(--transition-speed-fast) ease, background-color var(--transition-speed-med) ease, color var(--transition-speed-med) ease, box-shadow var(--transition-speed-fast) ease;
+            appearance: none; /* Remove default styling */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        /* Remove number input arrows */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
+        }
+
+        /* Custom Select Arrow */
+         select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem; /* Make space for arrow */
+         }
+        body.dark-mode select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+        }
+
+
+        /* --- Input Validation Feedback --- */
+        .validation-feedback {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity var(--transition-speed-fast) ease, color var(--transition-speed-fast) ease;
+        }
+        .input-wrapper.invalid .validation-feedback.error-icon { opacity: 1; color: var(--error-color); }
+        .input-wrapper.valid .validation-feedback.success-icon { opacity: 1; color: var(--success-color); }
+
+        input[type="number"].invalid { border-color: var(--error-color); }
+        input[type="number"].valid { border-color: var(--success-color); }
+        input[type="number"].invalid:focus { box-shadow: 0 0 0 3px rgba(var(--error-color, 220, 53, 69), 0.2); }
+        input[type="number"].valid:focus { box-shadow: 0 0 0 3px rgba(var(--success-color, 40, 167, 69), 0.2); }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            height: 1em; /* Reserve space to prevent layout shift */
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: opacity var(--transition-speed-fast) ease, transform var(--transition-speed-fast) ease;
+        }
+        .input-wrapper.invalid + .error-message {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- Regime Toggle Switch --- */
+        .regime-toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Align label and switch */
+            background-color: rgba(var(--primary-color-rgb), 0.05); /* Subtle background */
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem; /* Add some space above */
+        }
+        body.dark-mode .regime-toggle-group {
+             background-color: rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--toggle-bg);
+            transition: var(--transition-speed-fast) ease;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--toggle-knob);
+            transition: var(--transition-speed-fast) ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background-color: var(--toggle-active-bg);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--toggle-active-bg); /* Subtle focus */
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+             font-weight: 500;
+             margin-left: 10px; /* Space between switch and label text */
+             transition: color var(--transition-speed-fast) ease;
+        }
+         #regime-toggle:checked ~ .toggle-label .new-regime-text { display: inline; }
+         #regime-toggle:checked ~ .toggle-label .old-regime-text { display: none; }
+         #regime-toggle:not(:checked) ~ .toggle-label .new-regime-text { display: none; }
+         #regime-toggle:not(:checked) ~ .toggle-label .old-regime-text { display: inline; }
+
+        /* --- Buttons --- */
+         .button-group {
+             display: flex;
+             gap: 1rem;
+             margin-top: 1rem;
+         }
+
+        button {
+            padding: 0.9rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform var(--transition-speed-fast) ease, background-color var(--transition-speed-fast) ease, box-shadow var(--transition-speed-fast) ease;
+            flex-grow: 1; /* Make buttons share space */
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #calculate-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(var(--primary-color-rgb), 0.3);
+        }
+        #calculate-btn:hover {
+            background-color: color-mix(in srgb, var(--primary-color) 90%, black);
+             box-shadow: 0 6px 12px rgba(var(--primary-color-rgb), 0.4);
+             transform: translateY(-2px);
+        }
+
+        #reset-btn {
+            background-color: var(--secondary-color);
+            color: #fff;
+             box-shadow: 0 4px 8px rgba(108, 117, 125, 0.2);
+        }
+        #reset-btn:hover {
+             background-color: color-mix(in srgb, var(--secondary-color) 90%, black);
+             box-shadow: 0 6px 12px rgba(108, 117, 125, 0.3);
+             transform: translateY(-2px);
+        }
+        body.dark-mode #reset-btn {
+             background-color: #495057; /* Darker gray for reset in dark mode */
+        }
+        body.dark-mode #reset-btn:hover {
+             background-color: #5a6268;
+        }
+
+
+        /* --- Results Section --- */
+        .results {
+            position: absolute; /* For cinematic transition */
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem; /* Match container padding */
+            background-color: var(--card-bg); /* Needs own background for transition */
+            border-radius: 16px; /* Match container */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity var(--transition-speed-med) var(--easing-curve), transform var(--transition-speed-med) var(--easing-curve);
+            pointer-events: none; /* Initially not interactive */
+            z-index: 10;
+            visibility: hidden; /* Use visibility for better performance */
+            min-height: 450px; /* Ensure space during animation */
+        }
+        .results.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+             visibility: visible;
+             position: relative; /* Change back to relative when shown */
+             z-index: auto; /* Reset z-index */
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .result-item {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background-color: rgba(var(--accent-color-rgb), 0.05);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden; /* For glow effect containment */
+        }
+        body.dark-mode .result-item {
+             background-color: rgba(var(--accent-color-rgb), 0.1);
+        }
+
+
+        .result-item h3 {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: inline-block; /* Needed for glow */
+            position: relative;
+            transition: color var(--transition-speed-med) ease;
+        }
+
+        /* Glow Effect */
+        .result-value::after {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity var(--transition-speed-slow) ease;
+            z-index: -1;
+             filter: blur(10px);
+             animation: pulse 2s infinite alternate ease-in-out;
+        }
+         .results.show .result-value::after {
+             opacity: 0.6; /* Control intensity */
+         }
+
+         @keyframes pulse {
+             from { transform: scale(0.95); opacity: 0.5; }
+             to { transform: scale(1.05); opacity: 0.7; }
+         }
+
+
+        /* --- Chart --- */
+        .chart-container {
+            margin-top: 2rem;
+             width: 100%;
+             min-height: 250px; /* Give space for chart */
+             position: relative; /* For absolute positioning inside */
+             opacity: 0; /* Initially hidden for animation */
+             transform: scale(0.95);
+             transition: opacity var(--transition-speed-slow) ease 0.2s, transform var(--transition-speed-slow) ease 0.2s; /* Delay chart appearance */
+        }
+         .results.show .chart-container {
+             opacity: 1;
+             transform: scale(1);
+         }
+
+         .chart-container h3 {
+             text-align: center;
+             margin-bottom: 1.5rem;
+             color: var(--secondary-color);
+             font-weight: 500;
+         }
+
+        .tax-chart {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end; /* Bars grow upwards */
+            height: 200px; /* Fixed height for bars */
+            border-bottom: 2px solid var(--input-border);
+            padding-bottom: 5px; /* Space below bars */
+            gap: 5px; /* Minimal gap between bars */
+        }
+
+        .chart-bar-wrapper {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             text-align: center;
+             flex-grow: 1; /* Allow bars to take space */
+             max-width: 80px; /* Limit bar width */
+        }
+
+        .chart-bar {
+            width: 80%; /* Relative to wrapper */
+            background-color: var(--chart-bar-color);
+            border-radius: 4px 4px 0 0; /* Rounded top corners */
+            position: relative; /* For tooltips or values */
+            height: 0; /* Initial state for animation */
+            transition: height var(--transition-speed-slow) var(--easing-curve), background-color var(--transition-speed-med) ease;
+             margin-bottom: 5px; /* Space between bar and label */
+        }
+         .chart-bar:hover {
+              background-color: color-mix(in srgb, var(--chart-bar-color) 85%, black);
+         }
+
+        .bar-value {
+            position: absolute;
+            top: -20px; /* Position above the bar */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-color);
+            background-color: rgba(var(--bg-color), 0.8);
+            padding: 2px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            opacity: 0; /* Hidden by default */
+             transition: opacity var(--transition-speed-fast) ease;
+             pointer-events: none; /* No interaction */
+        }
+        .chart-bar:hover .bar-value {
+             opacity: 1;
+        }
+
+
+        .bar-label {
+            font-size: 0.75rem;
+            color: var(--chart-label-color);
+            margin-top: 0.5rem;
+             white-space: nowrap;
+        }
+
+        /* --- Hidden Class --- */
+        .hidden {
+            display: none !important; /* Utility class, !important needed to override initial state sometimes */
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            html { font-size: 15px; }
+            body { padding: 1rem 0.5rem; }
+            .container { padding: 1.5rem; max-width: 95%; }
+            h1 { font-size: 1.8rem; }
+            .subtitle { font-size: 0.85rem; }
+            .fo
