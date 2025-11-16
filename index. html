@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Income Tax Calculator</title>
+    <!-- 
+      This is a single-file HTML document. 
+      All CSS and JavaScript are inlined below.
+    -->
+
+    <!-- 
+      Font: Using Inter as a high-quality, SF Pro-like system-safe font.
+      This matches the iOS aesthetic requested.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- 
+      Libraries: 
+      1. jspdf: For client-side PDF generation.
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- 
+      INLINE STYLESHEET
+      Design System: "iOS 26.1" Dark Liquid-Glass
+    -->
+    <style>
+        /* * --- 0. CSS Variables & Root ---
+         */
+        :root {
+            /* Typography */
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            
+            /* Core Colors (Liquid Glass Dark) */
+            --bg-deep-black: #050506;
+            --glass-bg: hsla(0, 0%, 15%, 0.4);
+            --glass-bg-hover: hsla(0, 0%, 18%, 0.5);
+            --glass-border: hsla(0, 0%, 100%, 0.1);
+            --glass-border-focus: hsla(210, 100%, 75%, 0.5);
+            --text-primary: hsl(0, 0%, 95%);
+            --text-secondary: hsl(0, 0%, 65%);
+            --text-tertiary: hsl(0, 0%, 45%);
+            
+            /* Accent & System Colors */
+            --accent-blue: hsl(210, 100%, 65%);
+            --accent-blue-hover: hsl(210, 100%, 75%);
+            --accent-green: hsl(140, 60%, 55%);
+            --accent-red: hsl(0, 75%, 60%);
+
+            /* Inputs */
+            --input-bg: hsla(0, 0%, 25%, 0.3);
+            --input-border: hsla(0, 0%, 100%, 0.1);
+            --input-bg-focus: hsla(0, 0%, 25%, 0.5);
+
+            /* Geometry & Effects */
+            --radius-l: 18px;  /* Main card radius */
+            --radius-m: 14px;  /* Inner element radius */
+            --radius-s: 8px;   /* Small button/tag radius */
+            --padding-main: 16px;
+            --grid-gap: 16px;
+            --blur-intensity: 12px;
+            --shadow-soft: 0 8px 32px hsla(0, 0%, 0%, 0.3);
+            --shadow-specular: inset 0 1px 0 hsla(0, 0%, 100%, 0.05); /* Top edge reflection */
+
+            /* Motion (iOS 26.1 Physics) */
+            --duration-fast: 160ms;   /* Micro-bounce */
+            --duration-medium: 420ms; /* Number counting, card fades */
+            --duration-slow: 300ms;   /* Collapse/expand */
+
+            /* Easing (Spring/Overshoot) */
+            --ease-spring-bounce: cubic-bezier(0.25, 1.2, 0.35, 1);
+            --ease-spring-out: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* * --- 1. Base & Reset ---
+         */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 100%; /* 16px */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-deep-black);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            padding: var(--padding-main);
+        }
+
+        /* Faint noise texture background */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Subtle noise SVG */
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNzUiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbnoaX2UiLz48L3N2Zz4=');
+            opacity: 0.015;
+            pointer-events: none;
+        }
+
+        main {
+            max-width: 700px;
+            margin: 0 auto;
+            padding-bottom: 60px; /* Footer room */
+            perspective: 1000px; /* For 3D card entrances */
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--text-primary);
+        }
+
+        h1 { font-size: 1.75rem; /* 28px */ }
+        h2 { font-size: 1.25rem; /* 20px */ }
+        h3 { font-size: 1.0rem;   /* 16px */ }
+
+        p {
+            font-size: 0.95rem; /* ~15px */
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: var(--grid-gap);
+        }
+
+        a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: color var(--duration-fast) ease-out;
+        }
+        a:hover { color: var(--accent-blue-hover); }
+
+        /* Icon base style */
+        .icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vertical-align: middle;
+        }
+
+        /* * --- 2. Core Components: Glass Cards & Buttons ---
+         */
+        
+        /* The main "Liquid Glass" card style */
+        .glass-card {
+            background-color: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-l);
+            padding: calc(var(--padding-main) + 8px); /* 24px */
+            margin-bottom: var(--grid-gap);
+            box-shadow: var(--shadow-soft), var(--shadow-specular);
+            backdrop-filter: blur(var(--blur-intensity));
+            -webkit-backdrop-filter: blur(var(--blur-intensity));
+            transition: background-color var(--duration-fast) ease-out;
+        }
+        
+        .glass-card:hover {
+            background-color: var(--glass-bg-hover);
+        }
+
+        /* Main Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--padding-main) 0;
+            margin-bottom: var(--grid-gap);
+        }
+
+        /* Base button style */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: var(--radius-m);
+            border: none;
+            cursor: pointer;
+            transition: transform var(--duration-fast) var(--ease-spring-bounce),
+                        background-color var(--duration-fast) ease-out,
+                        color var(--duration-fast) ease-out;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Primary action button */
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: #000;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+        }
+
+        /* Secondary/Icon button (transparent bg) */
+        .btn-icon {
+            background-color: transparent;
+            color: var(--text-secondary);
+            padding: 8px;
+            border-radius: 50%;
+        }
+        .btn-icon:hover {
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+        }
+
+        /* * --- 3. Form Elements ---
+         */
+        .form-group {
+            margin-bottom: var(--grid-gap);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            pointer-events: none;
+        }
+
+        .form-input, .form-select {
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-m);
+            padding: 14px 16px;
+            width: 100%;
+            transition: border-color var(--duration-fast) ease-out, 
+                        background-color var(--duration-fast) ease-out;
+        }
+        
+        .form-input[type="number"] {
+            padding-left: 32px; /* Room for '₹' */
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--glass-border-focus);
+            background-color: var(--input-bg-focus);
+        }
+        
+        /* Hide number input spinners */
+        .form-input[type="number"]::-webkit-outer-spin-button,
+        .form-input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .form-input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .form-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(0, 0%, 65%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+        
+        /* Custom Toggle Switch (iOS style) */
+        .toggle-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 51px;
+            height: 31px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 34px;
+            transition: background-color var(--duration-fast) ease-out;
+        }
+        .toggle-slider::before {
+            position: absolute;
+            content: "";
+            height: 27px;
+            width: 27px;
+            left: 1px;
+            bottom: 1px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform var(--duration-fast) var(--ease-spring-out);
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        /* * --- 4. Layout & Specific Components ---
+         */
+        
+        /* Two-column grid for inputs */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--grid-gap);
+        }
+
+        /* Output / Results Area */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--grid-gap);
+            margin-top: calc(var(--padding-main) + 8px);
+            border-top: 1px solid var(--glass-border);
+            padding-top: calc(var(--padding-main) + 8px);
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 14px;
+            border-radius: var(--radius-m);
+        }
+        .result-item-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .result-item-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .result-item-value.positive { color: var(--accent-green); }
+        .result-item-value.negative { color: var(--accent-red); }
+
+        /* Comparison Card */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--grid-gap);
+            text-align: center;
+        }
+        .regime-col h3 {
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .regime-tax {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .regime-taxable {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+
+        .result-chip {
+            text-align: center;
+            background: var(--input-bg-focus);
+            border-radius: var(--radius-m);
+            padding: 12px;
+            margin-top: var(--grid-gap);
+            cursor: pointer;
+            
+            /* Animation state */
+            transform: scale(0.9);
+            opacity: 0;
+            transition: transform var(--duration-medium) var(--ease-spring-out),
+                        opacity var(--duration-medium) ease-out;
+        }
+        .result-chip.visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+        #comparison-explanation {
+            font-size: 0.9rem;
+            background: var(--input-bg);
+            padding: 14px;
+            border-radius: var(--radius-m);
+            margin-top: var(--grid-gap);
+            
+            /* Collapse animation */
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: max-height var(--duration-slow) ease-out,
+                        opacity var(--duration-slow) ease-out,
+                        transform var(--duration-slow) ease-out,
+                        padding var(--duration-slow) ease-out,
+                        margin var(--duration-slow) ease-out;
+        }
+        #comparison-explanation.expanded {
+            max-height: 300px;
+            opacity: 1;
+            transform: translateY(0);
+            padding: 14px;
+            margin-top: var(--grid-gap);
+        }
+        
+        /* Collapsible Cards (HRA, Deductions) */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .collapsible-header .icon {
+            transition: transform var(--duration-slow) var(--ease-spring-out);
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: max-height var(--duration-slow) ease-out,
+                        opacity var(--duration-slow) ease-out,
+                        transform var(--duration-slow) ease-out,
+                        padding-top var(--duration-slow) ease-out;
+        }
+        .collapsible-card.expanded .collapsible-content {
+            max-height: 1000px; /* Large value for auto-height */
+            opacity: 1;
+            transform: translateY(0);
+            padding-top: calc(var(--padding-main) + 8px); /* 24px */
+        }
+        .collapsible-card.expanded .collapsible-header .icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Tools Grid (HRA, TDS, etc.) */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--grid-gap);
+        }
+
+        /* Export/Save Buttons */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .btn-secondary {
+            background-color: var(--input-bg-focus);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            background-color: var(--input-bg);
+        }
+        .btn-secondary .icon {
+            stroke-width: 2;
+        }
+
+        /* * --- 5. Modal (Settings) ---
+         */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: hsla(0, 0%, 0%, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: grid;
+            place-items: center;
+            z-index: 100;
+            
+            /* Animation */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--duration-slow) ease-out,
+                        visibility var(--duration-slow) ease-out;
+        }
+        .modal-overlay:not([hidden]) {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            /* Inherits .glass-card style */
+            width: calc(100% - (var(--padding-main) * 2));
+            max-width: 400px;
+            
+            /* Animation */
+            transform: scale(0.95) translateY(10px);
+            opacity: 0;
+            transition: transform var(--duration-slow) var(--ease-spring-out),
+                        opacity var(--duration-slow) ease-out;
+        }
+        .modal-overlay:not([hidden]) .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--grid-gap);
+        }
+        
+        .slider-group {
+            margin-bottom: var(--grid-gap);
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid var(--input-bg-focus);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid var(--input-bg-focus);
+        }
+
+        /* * --- 6. Animations & Accessibility ---
+         */
+
+        /* Staggered card entrance */
+        .stagger-in {
+            transform: translateZ(-24px);
+            opacity: 0;
+            animation: card-enter var(--duration-medium) var(--ease-out-quint) forwards;
+        }
+
+        @keyframes card-enter {
+            to {
+                transform: translateZ(0);
+                opacity: 1;
+            }
+        }
+
+        /* Number counting animation */
+        .counting {
+            animation: count-up var(--duration-medium) var(--ease-spring-bounce);
+        }
+        @keyframes count-up {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        /* Accessibility: Focus Ring */
+        :focus-visible {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+            border-radius: var(--radius-s);
+        }
+        /* Custom focus for inputs */
+        .form-input:focus-visible, .form-select:focus-visible {
+            outline: none;
+            border-color: var(--glass-border-focus);
+        }
+        /* Custom focus for toggles */
+        .toggle-switch input:focus-visible + .toggle-slider {
+            box-shadow: 0 0 0 2px var(--bg-deep-black), 0 0 0 4px var(--accent-blue);
+        }
+
+        /* Accessibility: Large Text */
+        body.large-text {
+            font-size: 1.1rem;
+        }
+        body.large-text h1 { font-size: 2rem; }
+        body.large-text h2 { font-size: 1.4rem; }
+        body.large-text .btn { padding: 12px 18px; }
+
+        /* Accessibility: Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            body, .btn, .toggle-slider, .toggle-slider::before,
+            .result-chip, #comparison-explanation,
+            .collapsible-header .icon, .collapsible-content,
+            .modal-overlay, .modal-content,
+            .stagger-in, .counting {
+                transition: none !important;
+                animation: none !important;
+            }
+            
+            /* Set to final state for animations */
+            .stagger-in {
+                transform: translateZ(0);
+                opacity: 1;
+            }
+        }
+        
+        /* * --- 7. Responsive Layout ---
+         */
+        
+        /* Tablet & Small Desktop */
+        @media (min-width: 600px) {
+            body {
+                padding: var(--padding-main) calc(var(--padding-main) * 2);
+            }
+            .input-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .tools-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .result-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .results-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .result-item-value {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 
+      Inline SVG Icons (SF Symbols Style)
+      This makes them easy to style with CSS (currentColor)
+    -->
+    <svg width="0" height="0" style="display: none;">
+        <symbol id="icon-settings" viewBox="0 0 24 24">
+            <path d="M14.39 4.03l.8 1.39a8.01 8.01 0 0 1 2.72 1.88l1.6-.39a.5.5 0 0 1 .6.51l-.5 1.73c.24.49.44.99.58 1.51l1.73.5a.5.5 0 0 1 .3.59l-.98 1.57a.5.5 0 0 1-.58.22l-1.68-.3c-.2.53-.44 1.05-.72 1.55l.98 1.57a.5.5 0 0 1-.3.59l-1.73.5a.5.5 0 0 1-.6-.51l.39-1.6a8.01 8.01 0 0 1-1.88-2.72l-1.39-.8a.5.5 0 0 1-.22-.58l.3-1.68a.5.5 0 0 1 .58-.22l1.39.8c.53-.2.98-.44 1.55-.72l.39-1.6a.5.5 0 0 1 .51-.6zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+            <path d="M9.61 4.03l-.8 1.39a8.01 8.01 0 0 0-2.72 1.88l-1.6-.39a.5.5 0 0 0-.6.51l.5 1.73A8.01 8.01 0 0 0 4 9.69l-1.73.5a.5.5 0 0 0-.3.59l.98 1.57a.5.5 0 0 0 .58.22l1.68-.3c.2.53.44 1.05.72 1.55l-.98 1.57a.5.5 0 0 0 .3.59l1.73.5a.5.5 0 0 0 .6-.51l-.39-1.6a8.01 8.01 0 0 0 1.88-2.72l1.39-.8a.5.5 0 0 0 .22-.58l-.3-1.68a.5.5 0 0 0-.58-.22l-1.39.8a8.01 8.01 0 0 0-1.55-.72l-.39-1.6a.5.5 0 0 0-.51-.6z"/>
+        </symbol>
+        <symbol id="icon-close" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </symbol>
+        <symbol id="icon-chevron-down" viewBox="0 0 24 24">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </symbol>
+        <symbol id="icon-info" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </symbol>
+        <symbol id="icon-save" viewBox="0 0 24 24">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13H7v8"></polyline>
+            <polyline points="7 3 7 8H15"></polyline>
+        </symbol>
+        <symbol id="icon-csv" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+        </symbol>
+    </svg>
+
+
+    <!-- 
+      App Header
+    -->
+    <header>
+        <h1>Tax Calculator</h1>
+        <button id="open-settings-btn" class="btn-icon" aria-label="Open Settings">
+            <svg class="icon"><use href="#icon-settings"></use></svg>
+        </button>
+    </header>
+
+    <main>
+        <!-- 
+          Card 1: Quick Tax Estimate (New Regime)
+        -->
+        <section id="estimator-card" class="glass-card stagger-in" role="region" aria-labelledby="estimator-title">
+            <h2 id="estimator-title">Quick Tax Estimate</h2>
+            <p>Calculated as per the New Regime (Default). All figures in ₹ (INR) per annum.</p>
+            
+            <div class="input-grid">
+                <div class="form-group">
+                    <label for="gross-salary" class="form-label">Annual Gross Salary</label>
+                    <div class="input-group">
+                        <span class="input-icon">₹</span>
+                        <input type="number" id="gross-salary" class="form-input" placeholder="e.g., 10,00,000" inputmode="numeric" aria-label="Annual Gross Salary in Rupees">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="other-income" class="form-label">Other Income</label>
+                    <div class="input-group">
+                        <span class="input-icon">₹</span>
+                        <input type="number" id="other-income" class="form-input" placeholder="e.g., 50,000" inputmode="numeric" aria-label="Other Income in Rupees">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="prof-tax" class="form-label">Professional Tax</label>
+                <div class="input-group">
+                    <span class="input-icon">₹</span>
+                    <input type="number" id="prof-tax" class="form-input" value="2400" inputmode="numeric" aria-label="Professional Tax in Rupees">
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-grid">
+                <div class="result-item">
+                    <span class="result-item-label">Taxable Income</span>
+                    <span id="result-taxable-income" class="result-item-value">₹0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-item-label">Total Tax Payable</span>
+                    <span id="result-total-tax" class="result-item-value">₹0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-item-label">Effective Tax Rate</span>
+                    <span id="result-effective-rate" class="result-item-value">0%</span>
+                </div>
+            </div>
+            
+            <div class="result-item" style="background: transparent; padding: 10px 0 0 0; margin-top: 10px;">
+                <span class="result-item-label">Monthly TDS (Approx)</span>
+                <span id="result-monthly-tds" class="result-item-value">₹0</span>
+            </div>
+
+        </section>
+
+        <!-- 
+          Card 2: Old vs. New Regime Comparison
+        -->
+        <section id="comparison-card" class="glass-card stagger-in" role="region" aria-labelledby="comparison-title">
+            <h2 id="comparison-title">Old vs. New Regime</h2>
+            
+            <div class="comparison-grid">
+                <div class="regime-col">
+                    <h3>Old Regime</h3>
+                    <div id="compare-tax-old" class="regime-tax">₹0</div>
+                    <div id="compare-taxable-old" class="regime-taxable">Taxable: ₹0</div>
+                </div>
+                <div class="regime-col">
+                    <h3>New Regime</h3>
+                    <div id="compare-tax-new" class="regime-tax">₹0</div>
+                    <div id="compare-taxable-new" class="regime-taxable">Taxable: ₹0</div>
+                </div>
+            </div>
+
+            <div id="result-chip" class="result-chip" role="button" aria-expanded="false" aria-controls="comparison-explanation">
+                <span id="result-chip-text">Enter income to see comparison.</span>
+            </div>
+
+            <div id="comparison-explanation" role="region">
+                <p>The <strong>New Regime</strong> is the default. It offers lower tax rates but disallows most deductions (like 80C, 80D, HRA).</p>
+                <p>The <strong>Old Regime</strong> has higher tax rates but allows you to claim various deductions to reduce your taxable income.</p>
+                <p>A Standard Deduction of ₹50,000 is available under <strong>both</strong> regimes for salaried individuals.</p>
+            </div>
+        </section>
+
+        <!-- 
+          Card 3: Collapsible Deductions Card
+        -->
+        <section id="deductions-card" class="glass-card collapsible-card stagger-in" role="region">
+            <div id="deductions-header" class="collapsible-header" role="button" aria-expanded="false" aria-controls="deductions-content">
+                <h2>Old Regime Deductions</h2>
+                <svg class="icon"><use href="#icon-chevron-down"></use></svg>
+            </div>
+
+            <div id="deductions-content" class="collapsible-content">
+                <p>These deductions apply <strong>only</strong> to the Old Regime calculation.</p>
+                <div class="toggle-group form-group">
+                    <label for="std-deduction" class="form-label" style="margin: 0;">Standard Deduction (₹50,000)</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="std-deduction" checked aria-label="Toggle Standard Deduction">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label for="sec-80c" class="form-label">80C (PF, ELSS, etc.)</label>
+                        <div class="input-group">
+                            <span class="input-icon">₹</span>
+                            <input type="number" id="sec-80c" class="form-input" placeholder="Max 1,50,000" inputmode="numeric" aria-label="80C Deductions">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="sec-80d" class="form-label">80D (Health Insurance)</label>
+                        <div class="input-group">
+                            <span class="input-icon">₹</span>
+                            <input type="number" id="sec-80d" class="form-input" placeholder="e.g., 25,000" inputmode="numeric" aria-label="80D Deductions">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nps" class="form-label">80CCD(1B) (NPS)</label>
+                    <div class="input-group">
+                        <span class="input-icon">₹</span>
+                        <input type="number" id="nps" class="form-input" placeholder="Max 50,000" inputmode="numeric" aria-label="NPS Deduction">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+          Grid for Tools: HRA, Export, Save
+        -->
+        <div class="tools-grid">
+
+            <!-- Card 4: HRA Calculator -->
+            <section id="hra-card" class="glass-card collapsible-card stagger-in" role="region">
+                <div id="hra-header" class="collapsible-header" role="button" aria-expanded="false" aria-controls="hra-content">
+                    <h2>HRA Exemption</h2>
+                    <svg class="icon"><use href="#icon-chevron-down"></use></svg>
+                </div>
+
+                <div id="hra-content" class="collapsible-content">
+                    <p>Calculates HRA exemption for the Old Regime. This amount is automatically included in the comparison.</p>
+                    <div class="form-group">
+                        <label for="city-type" class="form-label">City Type</label>
+                        <select id="city-type" class="form-select" aria-label="Select City Type">
+                            <option value="non-metro">Non-Metro</option>
+                            <option value="metro">Metro (Mumbai, Delhi, etc.)</option>
+                        </select>
+                    </div>
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label for="basic-salary" class="form-label">Annual Basic Salary</label>
+                            <div class="input-group">
+                                <span class="input-icon">₹</span>
+                                <input type="number" id="basic-salary" class="form-input" placeholder="0" inputmode="numeric" aria-label="Annual Basic Salary">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hra-received" class="form-label">Annual HRA Received</label>
+                            <div class="input-group">
+                                <span class="input-icon">₹</span>
+                                <input type="number" id="hra-received" class="form-input" placeholder="0" inputmode="numeric" aria-label="Annual HRA Received">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="rent-paid" class="form-label">Annual Rent Paid</label>
+                        <div class="input-group">
+                            <span class="input-icon">₹</span>
+                            <input type="number" id="rent-paid" class="form-input" placeholder="0" inputmode="numeric" aria-label="Annual Rent Paid">
+                        </div>
+                    </div>
+                    
+                    <div class="result-item" style="margin-top: var(--grid-gap);">
+                        <span class="result-item-label">HRA Exemption</span>
+                        <span id="result-hra-exemption" class="result-item-value">₹0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 5: Export & Save -->
+            <section id="actions-card" class="glass-card stagger-in" role="region" aria-labelledby="actions-title">
+                <h2 id="actions-title">Tools</h2>
+                <p>Save a snapshot of your inputs or export a summary.</p>
+                
+                <div class="actions-grid" style="margin-top: var(--grid-gap);">
+                    <button id="export-pdf-btn" class="btn btn-secondary" aria-label="Export PDF Summary">
+                        <svg class="icon"><use href="#icon-download"></use></svg>
+                        Export PDF
+                    </button>
+                    <button id="export-csv-btn" class="btn btn-secondary" aria-label="Export CSV Data">
+                        <svg class="icon"><use href="#icon-csv"></use></svg>
+                        Export CSV
+                    </button>
+                    <button id="save-snapshot-btn" class="btn btn-secondary" aria-label="Save Snapshot to Local Storage">
+                        <svg class="icon"><use href="#icon-save"></use></svg>
+                        Save
+                    </button>
+                    <button id="load-snapshot-btn" class="btn btn-secondary" aria-label="Load Snapshot from Local Storage">
+                        <svg class="icon"><use href="#icon-upload"></use></svg>
+                        Load
+                    </button>
+                </div>
+                <input type="file" id="import-json-input" accept=".json" style="display: none;" aria-label="Import JSON file input">
+            </section>
+
+        </div>
+    </main>
+
+    <!-- 
+      Modal: Settings
+    -->
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+        <div class="glass-card modal-content">
+            <div class="modal-header">
+                <h2 id="settings-title">Settings</h2>
+                <button id="close-settings-btn" class="btn-icon" aria-label="Close Settings">
+                    <svg class="icon"><use href="#icon-close"></use></svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <label for="tint-slider">Glass Blur / Tint</label>
+                        <span id="tint-value">12px</span>
+                    </div>
+                    <input type="range" id="tint-slider" min="0" max="24" value="12" step="1" aria-label="Glass blur intensity">
+                </div>
+
+                <div class="toggle-group">
+                    <label for="large-text-toggle" class="form-label" style="margin: 0;">Large Text</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="large-text-toggle" aria-label="Toggle Large Text">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-group">
+                    <label for="reduced-motion-toggle" class="form-label" style="margin: 0;">Reduced Motion</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="reduced-motion-toggle" aria-label="Toggle Reduced Motion">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-group">
+                    <label for="privacy-toggle" class="form-label" style="margin: 0;">Analytics</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="privacy-toggle" disabled aria-label="Toggle Analytics (disabled)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p style="font-size: 0.85rem; margin-top: 8px;">All calculations are performed on your device. No data is sent to any server. Analytics are permanently disabled.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 
+      INLINE JAVASCRIPT
+    -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 0. Constants & Tax Slabs (FY 2024-25 / AY 2025-26) ---
+            
+            const STANDARD_DEDUCTION = 50000;
+            const HEALTH_EDUCATION_CESS = 0.04;
+            const MAX_80C = 150000;
+            const MAX_NPS_80CCD1B = 50000;
+
+            // Rebate limits
+            const REBATE_LIMIT_NEW = 700000;
+            const REBATE_LIMIT_OLD = 500000;
+
+            // Slabs [limit, rate]
+            const SLABS_NEW = [
+                { limit: 300000, rate: 0.00 },
+                { limit: 600000, rate: 0.05 },
+                { limit: 900000, rate: 0.10 },
+                { limit: 1200000, rate: 0.15 },
+                { limit: 1500000, rate: 0.20 },
+                { limit: Infinity, rate: 0.30 }
+            ];
+
+            const SLABS_OLD = [
+                { limit: 250000, rate: 0.00 },
+                { limit: 500000, rate: 0.05 },
+                { limit: 1000000, rate: 0.20 },
+                { limit: Infinity, rate: 0.30 }
+            ];
+
+            // --- 1. DOM Element Selectors ---
+            
+            const elements = {
+                // Inputs
+                grossSalary: document.getElementById('gross-salary'),
+                otherIncome: document.getElementById('other-income'),
+                profTax: document.getElementById('prof-tax'),
+                stdDeductionToggle: document.getElementById('std-deduction'),
+                sec80C: document.getElementById('sec-80c'),
+                sec80D: document.getElementById('sec-80d'),
+                nps: document.getElementById('nps'),
+                // HRA Inputs
+                cityType: document.getElementById('city-type'),
+                basicSalary: document.getElementById('basic-salary'),
+                hraReceived: document.getElementById('hra-received'),
+                rentPaid: document.getElementById('rent-paid'),
+                // Quick Estimate Outputs
+                taxableIncomeOut: document.getElementById('result-taxable-income'),
+                totalTaxOut: document.getElementById('result-total-tax'),
+                effectiveRateOut: document.getElementById('result-effective-rate'),
+                monthlyTdsOut: document.getElementById('result-monthly-tds'),
+                // Comparison Outputs
+                compareTaxOld: document.getElementById('compare-tax-old'),
+                compareTaxableOld: document.getElementById('compare-taxable-old'),
+                compareTaxNew: document.getElementById('compare-tax-new'),
+                compareTaxableNew: document.getElementById('compare-taxable-new'),
+                resultChip: document.getElementById('result-chip'),
+                resultChipText: document.getElementById('result-chip-text'),
+                comparisonExplanation: document.getElementById('comparison-explanation'),
+                // HRA Output
+                hraExemptionOut: document.getElementById('result-hra-exemption'),
+                // Collapsible Sections
+                deductionsHeader: document.getElementById('deductions-header'),
+                deductionsCard: document.getElementById('deductions-card'),
+                hraHeader: document.getElementById('hra-header'),
+                hraCard: document.getElementById('hra-card'),
+                // Tools
+                exportPdfBtn: document.getElementById('export-pdf-btn'),
+                exportCsvBtn: document.getElementById('export-csv-btn'),
+                saveSnapshotBtn: document.getElementById('save-snapshot-btn'),
+                loadSnapshotBtn: document.getElementById('load-snapshot-btn'),
+                importJsonInput: document.getElementById('import-json-input'),
+                // Settings Modal
+                settingsModal: document.getElementById('settings-modal'),
+                openSettingsBtn: document.getElementById('open-settings-btn'),
+                closeSettingsBtn: document.getElementById('close-settings-btn'),
+                tintSlider: document.getElementById('tint-slider'),
+                tintValue: document.getElementById('tint-value'),
+                largeTextToggle: document.getElementById('large-text-toggle'),
+                reducedMotionToggle: document.getElementById('reduced-motion-toggle'),
+            };
+
+            const allInputs = [
+                elements.grossSalary, elements.otherIncome, elements.profTax,
+                elements.stdDeductionToggle, elements.sec80C, elements.sec80D, elements.nps,
+                elements.cityType, elements.basicSalary, elements.hraReceived, elements.rentPaid
+            ];
+
+            // --- 2. Helper Functions ---
+            
+            /**
+             * Parses a string (with or without commas) into a float.
+             * @param {string} value - The input string.
+             * @returns {number} - The parsed number, or 0.
+             */
+            const parseInput = (value) => parseFloat(String(value).replace(/,/g, '')) || 0;
+            
+            /**
+             * Formats a number as Indian currency (e.g., ₹1,00,000).
+             * @param {number} value - The number to format.
+             * @returns {string} - The formatted currency string.
+             */
+            const formatCurrency = (value) => {
+                const roundedValue = Math.round(value);
+                return new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                }).format(roundedValue);
+            };
+            
+            /**
+             * Formats a number as a string with commas.
+             * @param {number} value - The number to format.
+             * @returns {string} - The formatted string.
+             */
+            const formatNumber = (value) => {
+                return new Intl.NumberFormat('en-IN').format(Math.round(value));
+            };
+
+            /**
+             * Animates a number counting up in a DOM element.
+             * @param {HTMLElement} el - The element to update.
+             * @param {number} toValue - The target value.
+             * @param {boolean} isCurrency - Whether to format as currency.
+             */
+            const animateNumber = (el, toValue, isCurrency = true) => {
+                const duration = 420; // Matches --duration-medium
+                const startValue = parseInput(el.textContent);
+                if (startValue === toValue) return;
+
+                el.classList.add('counting');
+                
+                let startTime = null;
+
+                const step = (timestamp) => {
+                    if (!startTime) startTime = timestamp;
+                    const progress = Math.min((timestamp - startTime) / duration, 1);
+                    
+                    // Ease-out quint function
+                    const easedProgress = 1 - Math.pow(1 - progress, 5);
+                    const currentValue = startValue + (toValue - startValue) * easedProgress;
+                    
+                    el.textContent = isCurrency ? formatCurrency(currentValue) : `${currentValue.toFixed(1)}%`;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        el.textContent = isCurrency ? formatCurrency(toValue) : `${toValue.toFixed(1)}%`;
+                        el.classList.remove('counting');
+                    }
+                };
+                requestAnimationFrame(step);
+            };
+
+            // --- 3. Core Tax Calculation Logic ---
+            
+            /**
+             * Calculates income tax based on regime and taxable income.
+             * @param {number} taxableIncome - The final taxable income.
+             * @param {'old' | 'new'} regime - The tax regime.
+             * @returns {number} - The total tax payable.
+             */
+            const calculateTax = (taxableIncome, regime) => {
+                if (taxableIncome <= 0) return 0;
+                
+                // Step 1: Apply Rebate u/s 87A
+                if (regime === 'new' && taxableIncome <= REBATE_LIMIT_NEW) return 0;
+                if (regime === 'old' && taxableIncome <= REBATE_LIMIT_OLD) return 0;
+
+                // Step 2: Calculate Slab Tax
+                const slabs = (regime === 'new') ? SLABS_NEW : SLABS_OLD;
+                let tax = 0;
+                let lastLimit = 0;
+                
+                for (const slab of slabs) {
+                    if (taxableIncome > lastLimit) {
+                        const taxableInSlab = Math.min(taxableIncome - lastLimit, slab.limit - lastLimit);
+                        tax += taxableInSlab * slab.rate;
+                    }
+                    lastLimit = slab.limit;
+                }
+                
+                // Step 3: Add Surcharge (Simplified: Not adding for this "Quick Estimate" as requested)
+                // In a full app, surcharge for >50L, >1Cr, >2Cr, >5Cr would be added here.
+                
+                // Step 4: Add 4% Health & Education Cess
+                const totalTax = tax + (tax * HEALTH_EDUCATION_CESS);
+                
+                return Math.round(totalTax);
+            };
+
+            /**
+             * Calculates HRA exemption.
+             * @param {object} inputs - State object containing all inputs.
+             * @returns {number} - The HRA exemption amount.
+             */
+            const calculateHRA = (inputs) => {
+                const { basicSalary, hraReceived, rentPaid, cityType } = inputs;
+                if (basicSalary === 0 || rentPaid === 0) return 0;
+                
+                const metroMultiplier = (cityType === 'metro') ? 0.5 : 0.4;
+                
+                const min1_actualHRA = hraReceived;
+                const min2_rentMinus10pBasic = Math.max(0, rentPaid - (0.1 * basicSalary));
+                const min3_metroBasic = metroMultiplier * basicSalary;
+                
+                const exemption = Math.max(0, Math.min(min1_actualHRA, min2_rentMinus10pBasic, min3_metroBasic));
+                
+                return Math.round(exemption);
+            };
+
+            /**
+             * Gathers all values from the DOM into a state object.
+             * @returns {object} - The current state.
+             */
+            const getState = () => ({
+                grossSalary: parseInput(elements.grossSalary.value),
+                otherIncome: parseInput(elements.otherIncome.value),
+                profTax: parseInput(elements.profTax.value),
+                stdDeduction: elements.stdDeductionToggle.checked,
+                sec80C: Math.min(parseInput(elements.sec80C.value), MAX_80C),
+                sec80D: parseInput(elements.sec80D.value), // Max limit is complex (age), omitting for simplicity
+                nps: Math.min(parseInput(elements.nps.value), MAX_NPS_80CCD1B),
+                cityType: elements.cityType.value,
+                basicSalary: parseInput(elements.basicSalary.value),
+                hraReceived: parseInput(elements.hraReceived.value),
+                rentPaid: parseInput(elements.rentPaid.value),
+            });
+
+            /**
+             * Populates all form fields from a state object.
+             * @param {object} state - The state to load.
+             */
+            const setState = (state) => {
+                elements.grossSalary.value = formatNumber(state.grossSalary || 0);
+                elements.otherIncome.value = formatNumber(state.otherIncome || 0);
+                elements.profTax.value = formatNumber(state.profTax || 2400);
+                elements.stdDeductionToggle.checked = state.stdDeduction !== false; // default true
+                elements.sec80C.value = formatNumber(state.sec80C || 0);
+                elements.sec80D.value = formatNumber(state.sec80D || 0);
+                elements.nps.value = formatNumber(state.nps || 0);
+                elements.cityType.value = state.cityType || 'non-metro';
+                elements.basicSalary.value = formatNumber(state.basicSalary || 0);
+                elements.hraReceived.value = formatNumber(state.hraReceived || 0);
+                elements.rentPaid.value = formatNumber(state.rentPaid || 0);
+                
+                // Trigger calculation after loading
+                updateAllCalculations();
+            };
+
+            // --- 4. Main Update & Render ---
+
+            /**
+             * The main function. Gathers state, calculates all values, and renders them to the DOM.
+             */
+            const updateAllCalculations = () => {
+                const state = getState();
+                const totalIncome = state.grossSalary + state.otherIncome;
+                
+                if (totalIncome === 0) {
+                    resetUI();
+                    return;
+                }
+                
+                // --- HRA Calculation ---
+                const hraExemption = calculateHRA(state);
+                animateNumber(elements.hraExemptionOut, hraExemption);
+                
+                // --- New Regime Calculation ---
+                const stdDeductionNew = (state.grossSalary > 0) ? STANDARD_DEDUCTION : 0;
+                const taxableIncomeNew = Math.max(0, totalIncome - state.profTax - stdDeductionNew);
+                const taxNew = calculateTax(taxableIncomeNew, 'new');
+                
+                // --- Old Regime Calculation ---
+                const stdDeductionOld = (state.grossSalary > 0 && state.stdDeduction) ? STANDARD_DEDUCTION : 0;
+                const totalDeductionsOld = stdDeductionOld + state.sec80C + state.sec80D + state.nps + hraExemption;
+                const taxableIncomeOld = Math.max(0, totalIncome - state.profTax - totalDeductionsOld);
+                const taxOld = calculateTax(taxableIncomeOld, 'old');
+
+                // --- Render: Quick Estimate (New Regime) ---
+                const effectiveRate = (totalIncome > 0) ? (taxNew / totalIncome) * 100 : 0;
+                animateNumber(elements.taxableIncomeOut, taxableIncomeNew);
+                animateNumber(elements.totalTaxOut, taxNew);
+                animateNumber(elements.effectiveRateOut, effectiveRate, false);
+                animateNumber(elements.monthlyTdsOut, taxNew / 12);
+
+                // --- Render: Comparison Card ---
+                animateNumber(elements.compareTaxNew, taxNew);
+                elements.compareTaxableNew.textContent = `Taxable: ${formatCurrency(taxableIncomeNew)}`;
+                
+                animateNumber(elements.compareTaxOld, taxOld);
+                elements.compareTaxableOld.textContent = `Taxable: ${formatCurrency(taxableIncomeOld)}`;
+                
+                // --- Render: Result Chip ---
+                const diff = taxOld - taxNew;
+                elements.resultChip.classList.add('visible');
+                elements.resultChip.classList.toggle('positive', diff > 0);
+                elements.resultChip.classList.toggle('negative', diff < 0);
+                
+                if (diff > 0) {
+                    elements.resultChipText.textContent = `You save ${formatCurrency(diff)} with the New Regime`;
+                } else if (diff < 0) {
+                    elements.resultChipText.textContent = `You save ${formatCurrency(Math.abs(diff))} with the Old Regime`;
+                } else {
+                    elements.resultChipText.textContent = `Tax is the same under both regimes.`;
+                }
+            };
+            
+            /**
+             * Resets the UI to its initial state.
+             */
+            const resetUI = () => {
+                animateNumber(elements.taxableIncomeOut, 0);
+                animateNumber(elements.totalTaxOut, 0);
+                animateNumber(elements.effectiveRateOut, 0, false);
+                animateNumber(elements.monthlyTdsOut, 0);
+                animateNumber(elements.compareTaxNew, 0);
+                elements.compareTaxableNew.textContent = `Taxable: ₹0`;
+                animateNumber(elements.compareTaxOld, 0);
+                elements.compareTaxableOld.textContent = `Taxable: ₹0`;
+                animateNumber(elements.hraExemptionOut, 0);
+                elements.resultChip.classList.remove('visible');
+                elements.resultChipText.textContent = `Enter income to see comparison.`;
+            };
+
+            // --- 5. Event Listeners ---
+
+            // Main calculation trigger
+            allInputs.forEach(input => {
+                input.addEventListener('input', updateAllCalculations);
+            });
+            
+            // Input auto-formatting (commas)
+            [elements.grossSalary, elements.otherIncome, elements.profTax, 
+             elements.sec80C, elements.sec80D, elements.nps,
+             elements.basicSalary, elements.hraReceived, elements.rentPaid].forEach(input => {
+                input.addEventListener('blur', (e) => {
+                    const value = parseInput(e.target.value);
+                    e.target.value = (value > 0) ? formatNumber(value) : '';
+                });
+                input.addEventListener('focus', (e) => {
+                    if (e.target.value) {
+                        e.target.value = parseInput(e.target.value);
+                    }
+                });
+            });
+
+            // Collapsible sections
+            const setupCollapsible = (header, card) => {
+                header.addEventListener('click', () => {
+                    const isExpanded = card.classList.toggle('expanded');
+                    header.setAttribute('aria-expanded', isExpanded);
+                });
+            };
+            setupCollapsible(elements.deductionsHeader, elements.deductionsCard);
+            setupCollapsible(elements.hraHeader, elements.hraCard);
+            
+            // Comparison explanation toggle
+            elements.resultChip.addEventListener('click', () => {
+                const isExpanded = elements.comparisonExplanation.classList.toggle('expanded');
+                elements.resultChip.setAttribute('aria-expanded', isExpanded);
+            });
+
+            // Settings Modal
+            elements.openSettingsBtn.addEventListener('click', () => {
+                elements.settingsModal.hidden = false;
+            });
+            elements.closeSettingsBtn.addEventListener('click', () => {
+                elements.settingsModal.hidden = true;
+            });
+            elements.settingsModal.addEventListener('click', (e) => {
+                if (e.target === elements.settingsModal) {
+                    elements.settingsModal.hidden = true;
+                }
+            });
+
+            // Settings: Tint/Blur Slider
+            elements.tintSlider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                document.documentElement.style.setProperty('--blur-intensity', `${value}px`);
+                elements.tintValue.textContent = `${value}px`;
+            });
+
+            // Settings: Large Text
+            elements.largeTextToggle.addEventListener('change', (e) => {
+                document.body.classList.toggle('large-text', e.target.checked);
+                localStorage.setItem('largeText', e.target.checked);
+            });
+            
+            // Settings: Reduced Motion
+            elements.reducedMotionToggle.addEventListener('change', (e) => {
+                document.body.classList.toggle('reduced-motion', e.target.checked);
+                localStorage.setItem('reducedMotion', e.target.checked);
+            });
+
+            // --- 6. Export & Save Logic ---
+            
+            /**
+             * Gathers all data for export.
+             * @returns {object} - Key-value pairs of all data.
+             */
+            const getExportData = () => {
+                const state = getState();
+                const totalIncome = state.grossSalary + state.otherIncome;
+                const hraExemption = calculateHRA(state);
+                
+                // New Regime
+                const stdDeductionNew = (state.grossSalary > 0) ? STANDARD_DEDUCTION : 0;
+                const taxableIncomeNew = Math.max(0, totalIncome - state.profTax - stdDeductionNew);
+                const taxNew = calculateTax(taxableIncomeNew, 'new');
+                
+                // Old Regime
+                const stdDeductionOld = (state.grossSalary > 0 && state.stdDeduction) ? STANDARD_DEDUCTION : 0;
+                const totalDeductionsOld = stdDeductionOld + state.sec80C + state.sec80D + state.nps + hraExemption;
+                const taxableIncomeOld = Math.max(0, totalIncome - state.profTax - totalDeductionsOld);
+                const taxOld = calculateTax(taxableIncomeOld, 'old');
+
+                return {
+                    'Assessment Year': '2025-26',
+                    'Financial Year': '2024-25',
+                    '': '', // Spacer
+                    'INCOME': '',
+                    'Gross Salary': state.grossSalary,
+                    'Other Income': state.otherIncome,
+                    'Total Income': totalIncome,
+                    'Professional Tax': state.profTax,
+                    '': '', // Spacer
+                    'DEDUCTIONS (Old Regime)': '',
+                    'Standard Deduction': stdDeductionOld,
+                    '80C': state.sec80C,
+                    '80D': state.sec80D,
+                    'NPS 80CCD(1B)': state.nps,
+                    'HRA Exemption': hraExemption,
+                    'Total Deductions (Old)': totalDeductionsOld,
+                    '': '', // Spacer
+                    'TAX SUMMARY': '',
+                    'Regime': 'New (Default)',
+                    'Taxable Income (New)': taxableIncomeNew,
+                    'Tax Payable (New)': taxNew,
+                    '': '', // Spacer
+                    'Regime': 'Old',
+                    'Taxable Income (Old)': taxableIncomeOld,
+                    'Tax Payable (Old)': taxOld,
+                    '': '', // Spacer
+                    'Result': `Saving: ${formatCurrency(taxOld - taxNew)} (New vs Old)`,
+                };
+            };
+            
+            // Export: PDF
+            elements.exportPdfBtn.addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const data = getExportData();
+                
+                doc.setFont('Helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.text('Income Tax Summary (AY 2025-26)', 10, 15);
+                
+                doc.setFont('Helvetica', 'normal');
+                doc.setFontSize(10);
+                
+                let y = 30;
+                for (const [key, value] of Object.entries(data)) {
+                    if (key === '') { y += 4; continue; }
+                    
+                    if (key === key.toUpperCase()) {
+                        doc.setFont('Helvetica', 'bold');
+                        doc.text(key, 10, y);
+                        doc.setFont('Helvetica', 'normal');
+                    } else {
+                        const formattedValue = (typeof value === 'number' && value !== 0) ? formatCurrency(value) : (value || '-');
+                        doc.text(key, 12, y);
+                        doc.text(String(formattedValue), 80, y);
+                    }
+                    y += 7;
+                }
+                
+                doc.save('tax-summary.pdf');
+            });
+
+            // Export: CSV
+            elements.exportCsvBtn.addEventListener('click', () => {
+                const data = getExportData();
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Category,Value\n";
+                
+                for (const [key, value] of Object.entries(data)) {
+                    if (key === '') continue;
+                    csvContent += `"${key.replace(/"/g, '""')}","${String(value).replace(/"/g, '""')}"\n`;
+                }
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', 'tax-summary.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Save Snapshot
+            elements.saveSnapshotBtn.addEventListener('click', () => {
+                const state = getState();
+                const json = JSON.stringify(state);
+                // "Encrypted" as requested (simple Base64)
+                const encrypted = btoa(json); 
+                localStorage.setItem('taxCalculatorSnapshot', encrypted);
+                
+                // Quick bounce animation
+                elements.saveSnapshotBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => { elements.saveSnapshotBtn.style.transform = 'scale(1)'; }, 160);
+            });
+
+            // Load Snapshot
+            elements.loadSnapshotBtn.addEventListener('click', () => {
+                const encrypted = localStorage.getItem('taxCalculatorSnapshot');
+                if (encrypted) {
+                    try {
+                        const json = atob(encrypted);
+                        const state = JSON.parse(json);
+                        setState(state);
+                    } catch (e) {
+                        console.error('Failed to load snapshot:', e);
+                        alert('Could not load snapshot. Data may be corrupt.');
+                    }
+                } else {
+                    alert('No saved snapshot found.');
+                }
+            });
+            
+            // --- 7. Initialization & Staggered Animations ---
+            
+            /**
+             * Loads user preferences from localStorage.
+             */
+            const loadPreferences = () => {
+                const largeText = localStorage.getItem('largeText') === 'true';
+                elements.largeTextToggle.checked = largeText;
+                document.body.classList.toggle('large-text', largeText);
+                
+                const reducedMotion = localStorage.getItem('reducedMotion') === 'true';
+                elements.reducedMotionToggle.checked = reducedMotion;
+                document.body.classList.toggle('reduced-motion', reducedMotion);
+                
+                // Also respect system preference
+                const systemPrefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (systemPrefersReduced) {
+                    elements.reducedMotionToggle.checked = true;
+                    document.body.classList.add('reduced-motion');
+                }
+            };
+
+            /**
+             * Staggers the entrance animation of all cards.
+             */
+            const animateCardEntrance = () => {
+                const cards = document.querySelectorAll('.stagger-in');
+                cards.forEach((card, index) => {
+                    // Staggered by 60ms
+                    card.style.animationDelay = `${index * 60}ms`;
+                });
+            };
+            
+            /**
+             * Runs simple test cases in the console.
+             */
+            const runConsoleTests = () => {
+                console.log('--- Running Tax Calculator Test Cases (AY 2025-26) ---');
+                
+                const testState1 = {
+                    grossSalary: 800000, otherIncome: 0, profTax: 2400,
+                    stdDeduction: true, sec80C: 0, sec80D: 0, nps: 0, hraExemption: 0
+                };
+                const taxNew1 = calculateTax(Math.max(0, 800000 - 2400 - 50000), 'new');
+                const taxOld1 = calculateTax(Math.max(0, 800000 - 2400 - 50000), 'old');
+                console.log('Test 1: 8L Income (Salaried)', { New: taxNew1, Old: taxOld1 }); // New should be 0 (rebate), Old should be > 0.
+
+                const testState2 = {
+                    grossSalary: 1200000, otherIncome: 50000, profTax: 2400,
+                    stdDeduction: true, sec80C: 150000, sec80D: 25000, nps: 50000, hraExemption: 0
+                };
+                const taxableNew2 = Math.max(0, 1250000 - 2400 - 50000);
+                const taxNew2 = calculateTax(taxableNew2, 'new');
+                const taxableOld2 = Math.max(0, 1250000 - 2400 - 50000 - 150000 - 25000 - 50000);
+                const taxOld2 = calculateTax(taxableOld2, 'old');
+                console.log('Test 2: 12.5L Income (All Deductions)', { New: taxNew2, Old: taxOld2 });
+
+                const testState3 = {
+                    grossSalary: 1800000, otherIncome: 0, profTax: 2400,
+                    stdDeduction: true, sec80C: 0, sec80D: 0, nps: 0, hraExemption: 0
+                };
+                const taxableNew3 = Math.max(0, 1800000 - 2400 - 50000);
+                const taxNew3 = calculateTax(taxableNew3, 'new');
+                const taxableOld3 = Math.max(0, 1800000 - 2400 - 50000);
+                const taxOld3 = calculateTax(taxableOld3, 'old');
+                console.log('Test 3: 18L Income (No Deductions)', { New: taxNew3, Old: taxOld3 }); // New should be lower.
+                
+                console.log('--- Test Cases Complete ---');
+            };
+
+            // Initial load
+            loadPreferences();
+            animateCardEntrance();
+            runConsoleTests();
+            
+            // Try to load snapshot on start
+            const initialSnapshot = localStorage.getItem('taxCalculatorSnapshot');
+            if (initialSnapshot) {
+                try {
+                    const json = atob(initialSnapshot);
+                    const state = JSON.parse(json);
+                    setState(state);
+                } catch (e) {
+                    console.warn('Could not auto-load snapshot.');
+                    localStorage.removeItem('taxCalculatorSnapshot');
+                }
+            } else {
+                // Set default prof tax
+                elements.profTax.value = '2,400';
+            }
+
+        });
+    </script>
+</body>
+</html>
+
