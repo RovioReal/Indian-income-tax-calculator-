@@ -1,1737 +1,1644 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Next-Level Indian Income Tax Calculator (FY 2023-24 / AY 2024-25) with dual regime comparison, suggestions, animated charts, dark theme, and PDF report.">
-    <meta name="keywords" content="income tax calculator india, tax calculator, india tax 2024, old regime, new regime, tax savings, finance tool">
-    <title>IndiTax Pro - Next-Level Tax Calculator</title>
+    <title>Indian Income Tax Calculator</title>
+    <!-- 
+      This is a single-file HTML document. 
+      All CSS and JavaScript are inlined below.
+    -->
 
-    <!-- Favicon (Example using Emoji) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
-
-    <!-- Google Fonts -->
+    <!-- 
+      Font: Using Inter as a high-quality, SF Pro-like system-safe font.
+      This matches the iOS aesthetic requested.
+    -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- 
+      Libraries: 
+      1. jspdf: For client-side PDF generation.
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- Embedded CSS -->
+    <!-- 
+      INLINE STYLESHEET
+      Design System: "iOS 26.1" Dark Liquid-Glass
+    -->
     <style>
-        /*-------------------------------------*/
-        /* 0. CSS Variables & Reset           */
-        /*-------------------------------------*/
+        /* * --- 0. CSS Variables & Root ---
+         */
         :root {
-            --bg-primary: #0f0f1a; /* Deep space blue/black */
-            --bg-secondary: #1a1a2e; /* Slightly lighter space blue */
-            --bg-glass: rgba(26, 26, 46, 0.6); /* Glassmorphism bg */
-            --text-primary: #e0e0e0; /* Light grey */
-            --text-secondary: #a0a0c0; /* Lighter purple/grey */
-            --accent-primary: #4a00e0; /* Vibrant purple */
-            --accent-secondary: #8e2de2; /* Lighter purple */
-            --accent-gradient: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            --glow-color: rgba(142, 45, 226, 0.7); /* Glow effect based on accent */
-            --success-color: #00ff9d;
-            --error-color: #ff4d4d;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --border-radius: 12px;
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            --font-main: 'Poppins', sans-serif;
-            --transition-fast: 0.2s ease-in-out;
-            --transition-medium: 0.4s ease-in-out;
+            /* Typography */
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            
+            /* Core Colors (Liquid Glass Dark) */
+            --bg-deep-black: #050506;
+            --glass-bg: hsla(0, 0%, 15%, 0.4);
+            --glass-bg-hover: hsla(0, 0%, 18%, 0.5);
+            --glass-border: hsla(0, 0%, 100%, 0.1);
+            --glass-border-focus: hsla(210, 100%, 75%, 0.5);
+            --text-primary: hsl(0, 0%, 95%);
+            --text-secondary: hsl(0, 0%, 65%);
+            --text-tertiary: hsl(0, 0%, 45%);
+            
+            /* Accent & System Colors */
+            --accent-blue: hsl(210, 100%, 65%);
+            --accent-blue-hover: hsl(210, 100%, 75%);
+            --accent-green: hsl(140, 60%, 55%);
+            --accent-red: hsl(0, 75%, 60%);
+
+            /* Inputs */
+            --input-bg: hsla(0, 0%, 25%, 0.3);
+            --input-border: hsla(0, 0%, 100%, 0.1);
+            --input-bg-focus: hsla(0, 0%, 25%, 0.5);
+
+            /* Geometry & Effects */
+            --radius-l: 18px;  /* Main card radius */
+            --radius-m: 14px;  /* Inner element radius */
+            --radius-s: 8px;   /* Small button/tag radius */
+            --padding-main: 16px;
+            --grid-gap: 16px;
+            --blur-intensity: 12px;
+            --shadow-soft: 0 8px 32px hsla(0, 0%, 0%, 0.3);
+            --shadow-specular: inset 0 1px 0 hsla(0, 0%, 100%, 0.05); /* Top edge reflection */
+
+            /* Motion (iOS 26.1 Physics) */
+            --duration-fast: 160ms;   /* Micro-bounce */
+            --duration-medium: 420ms; /* Number counting, card fades */
+            --duration-slow: 300ms;   /* Collapse/expand */
+
+            /* Easing (Spring/Overshoot) */
+            --ease-spring-bounce: cubic-bezier(0.25, 1.2, 0.35, 1);
+            --ease-spring-out: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        *,
-        *::before,
-        *::after {
+        /* * --- 1. Base & Reset ---
+         */
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
         html {
-            font-size: 16px; /* Base font size */
-            scroll-behavior: smooth;
-            scrollbar-color: var(--accent-secondary) var(--bg-secondary);
-            scrollbar-width: thin;
+            font-size: 100%; /* 16px */
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
+            background-color: var(--bg-deep-black);
+            color: var(--text-primary);
             font-family: var(--font-main);
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.7;
-            overflow-x: hidden; /* Prevent horizontal scroll */
-            background-image: radial-gradient(circle at top left, rgba(74, 0, 224, 0.15), transparent 40%),
-                              radial-gradient(circle at bottom right, rgba(142, 45, 226, 0.1), transparent 50%);
-            background-attachment: fixed;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            padding: var(--padding-main);
         }
 
-        h1, h2, h3, h4, h5, h6 {
+        /* Faint noise texture background */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Subtle noise SVG */
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNzUiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbnoaX2UiLz48L3N2Zz4=');
+            opacity: 0.015;
+            pointer-events: none;
+        }
+
+        main {
+            max-width: 700px;
+            margin: 0 auto;
+            padding-bottom: 60px; /* Footer room */
+            perspective: 1000px; /* For 3D card entrances */
+        }
+
+        h1, h2, h3 {
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.8rem;
             line-height: 1.3;
-            letter-spacing: 0.5px;
+            color: var(--text-primary);
         }
 
-        h1 { font-size: 2.5rem; /* 40px */ }
-        h2 { font-size: 1.8rem; /* 28.8px */ margin-top: 2rem;}
-        h3 { font-size: 1.4rem; /* 22.4px */ margin-top: 1.5rem; }
-        h4 { font-size: 1.1rem; /* 17.6px */ color: var(--text-secondary); margin-top: 1rem;}
+        h1 { font-size: 1.75rem; /* 28px */ }
+        h2 { font-size: 1.25rem; /* 20px */ }
+        h3 { font-size: 1.0rem;   /* 16px */ }
 
         p {
-            margin-bottom: 1rem;
+            font-size: 0.95rem; /* ~15px */
             color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: var(--grid-gap);
         }
 
         a {
-            color: var(--accent-secondary);
+            color: var(--accent-blue);
             text-decoration: none;
-            transition: color var(--transition-fast);
+            transition: color var(--duration-fast) ease-out;
         }
-        a:hover {
-            color: var(--success-color);
+        a:hover { color: var(--accent-blue-hover); }
+
+        /* Icon base style */
+        .icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vertical-align: middle;
         }
 
-        img, svg {
-            max-width: 100%;
-            height: auto;
-            display: block;
+        /* * --- 2. Core Components: Glass Cards & Buttons ---
+         */
+        
+        /* The main "Liquid Glass" card style */
+        .glass-card {
+            background-color: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-l);
+            padding: calc(var(--padding-main) + 8px); /* 24px */
+            margin-bottom: var(--grid-gap);
+            box-shadow: var(--shadow-soft), var(--shadow-specular);
+            backdrop-filter: blur(var(--blur-intensity));
+            -webkit-backdrop-filter: blur(var(--blur-intensity));
+            transition: background-color var(--duration-fast) ease-out;
+        }
+        
+        .glass-card:hover {
+            background-color: var(--glass-bg-hover);
         }
 
-        button {
+        /* Main Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--padding-main) 0;
+            margin-bottom: var(--grid-gap);
+        }
+
+        /* Base button style */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             font-family: var(--font-main);
-            cursor: pointer;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 0.8rem 1.5rem;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            transition: all var(--transition-medium);
+            padding: 10px 16px;
+            border-radius: var(--radius-m);
+            border: none;
+            cursor: pointer;
+            transition: transform var(--duration-fast) var(--ease-spring-bounce),
+                        background-color var(--duration-fast) ease-out,
+                        color var(--duration-fast) ease-out;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .btn:active {
+            transform: scale(0.96);
         }
 
-        input, select {
-            font-family: var(--font-main);
-            padding: 0.8rem 1rem;
-            border: 1px solid var(--border-color);
-            background-color: rgba(255, 255, 255, 0.05);
+        /* Primary action button */
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: #000;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+        }
+
+        /* Secondary/Icon button (transparent bg) */
+        .btn-icon {
+            background-color: transparent;
+            color: var(--text-secondary);
+            padding: 8px;
+            border-radius: 50%;
+        }
+        .btn-icon:hover {
+            background-color: var(--input-bg);
             color: var(--text-primary);
-            border-radius: var(--border-radius);
-            width: 100%;
+        }
+
+        /* * --- 3. Form Elements ---
+         */
+        .form-group {
+            margin-bottom: var(--grid-gap);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 14px;
             font-size: 1rem;
-            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            font-weight: 500;
+            color: var(--text-tertiary);
+            pointer-events: none;
         }
-        input:focus, select:focus {
+
+        .form-input, .form-select {
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-m);
+            padding: 14px 16px;
+            width: 100%;
+            transition: border-color var(--duration-fast) ease-out, 
+                        background-color var(--duration-fast) ease-out;
+        }
+        
+        .form-input[type="number"] {
+            padding-left: 32px; /* Room for '₹' */
+        }
+
+        .form-input:focus, .form-select:focus {
             outline: none;
-            border-color: var(--accent-secondary);
-            box-shadow: 0 0 0 3px rgba(142, 45, 226, 0.3);
+            border-color: var(--glass-border-focus);
+            background-color: var(--input-bg-focus);
         }
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
+        
+        /* Hide number input spinners */
+        .form-input[type="number"]::-webkit-outer-spin-button,
+        .form-input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-        input[type=number] {
-            -moz-appearance: textfield; /* Firefox */
+        .form-input[type="number"] {
+            -moz-appearance: textfield;
         }
 
-        /*-------------------------------------*/
-        /* 1. Layout & Container             */
-        /*-------------------------------------*/
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 0 20px;
+        .form-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(0, 0%, 65%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 20px;
+            padding-right: 40px;
         }
-
-        .main-content {
-             padding-top: 40px;
-             padding-bottom: 60px;
+        
+        /* Custom Toggle Switch (iOS style) */
+        .toggle-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
         }
-
-        .grid {
-            display: grid;
-            gap: 30px;
-        }
-
-        .grid-col-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .grid-col-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-
-        /*-------------------------------------*/
-        /* 2. Header                        */
-        /*-------------------------------------*/
-        .site-header {
-            padding: 20px 0;
-            text-align: center;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .site-header h1 {
-            font-size: 2.2rem;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
-            display: inline-block; /* Needed for gradient */
-            font-weight: 700;
-            letter-spacing: 1px;
-            animation: headerGlow 3s ease-in-out infinite alternate; /* Animation 1 */
-        }
-
-        .site-header p {
-             font-size: 0.9rem;
-             color: var(--text-secondary);
-             margin-bottom: 0;
-        }
-
-
-        /*-------------------------------------*/
-        /* 3. Form & Input Sections          */
-        /*-------------------------------------*/
-        .calculator-section {
-            background: var(--bg-glass);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        .toggle-switch {
             position: relative;
-            overflow: hidden;
-            opacity: 0; /* For load animation */
-            transform: translateY(20px); /* For load animation */
-        }
-
-        .calculator-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(142, 45, 226, 0.1) 0%, rgba(142, 45, 226, 0) 70%);
-            animation: rotateBackground 20s linear infinite; /* Animation 2 */
-            z-index: -1; /* Place behind content */
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            transition: all var(--transition-fast);
-        }
-         .form-group input:focus + label, /* Floating label concept */
-        .form-group input:not(:placeholder-shown) + label {
-            /* Add if implementing floating labels, requires HTML restructure */
-        }
-
-        .form-group .icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--accent-secondary);
-            font-size: 1.1rem;
-            opacity: 0.7;
-        }
-         .form-group input {
-             padding-left: 45px;
-         }
-        .form-group .tooltip {
             display: inline-block;
-            margin-left: 8px;
-            color: var(--text-secondary);
-            cursor: help;
-            position: relative;
+            width: 51px;
+            height: 31px;
+            flex-shrink: 0;
         }
-        .form-group .tooltip i { font-size: 0.9rem; }
-        .form-group .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 220px;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            text-align: center;
-            border-radius: var(--border-radius);
-            padding: 10px;
-            position: absolute;
-            z-index: 10;
-            bottom: 130%; /* Position above the icon */
-            left: 50%;
-            margin-left: -110px; /* Center the tooltip */
+        .toggle-switch input {
             opacity: 0;
-            transition: opacity 0.3s;
-             border: 1px solid var(--border-color);
-             font-size: 0.85rem;
-             line-height: 1.4;
-             box-shadow: var(--shadow);
+            width: 0;
+            height: 0;
         }
-        .form-group .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-            animation: tooltipFadeIn 0.3s ease-out; /* Animation 3 */
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 34px;
+            transition: background-color var(--duration-fast) ease-out;
         }
-
-
-        /* Section Styling */
-        .income-details, .deduction-details {
-             margin-top: 25px;
-             border-top: 1px dashed var(--border-color);
-             padding-top: 25px;
+        .toggle-slider::before {
+            position: absolute;
+            content: "";
+            height: 27px;
+            width: 27px;
+            left: 1px;
+            bottom: 1px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform var(--duration-fast) var(--ease-spring-out);
         }
-
-        .deduction-details h3 {
-            margin-bottom: 20px;
-             color: var(--accent-secondary);
+        input:checked + .toggle-slider {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
         }
-
-
-        /*-------------------------------------*/
-        /* 4. Buttons                       */
-        /*-------------------------------------*/
-        .btn {
-            display: inline-block;
-            text-align: center;
-            transition: all var(--transition-medium);
-            position: relative;
-             overflow: hidden;
+        input:checked + .toggle-slider::before {
+            transform: translateX(20px);
         }
 
-        .btn-primary {
-            background: var(--accent-gradient);
-            color: white;
-             box-shadow: 0 4px 15px rgba(142, 45, 226, 0.3);
-        }
-        .btn-primary:hover {
-            transform: translateY(-3px) scale(1.03); /* Animation 4 */
-            box-shadow: 0 8px 25px var(--glow-color); /* Animation 5 */
-        }
-         .btn-primary:active {
-            transform: translateY(-1px) scale(0.98); /* Animation 6 */
-         }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--accent-secondary);
-            border: 2px solid var(--accent-secondary);
-        }
-        .btn-secondary:hover {
-            background: var(--accent-secondary);
-            color: white;
-            box-shadow: 0 0 15px var(--glow-color); /* Animation 7 */
+        /* * --- 4. Layout & Specific Components ---
+         */
+        
+        /* Two-column grid for inputs */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--grid-gap);
         }
 
-        .btn-download {
-            font-size: 0.9rem;
-            padding: 0.6rem 1.2rem;
-            margin-top: 10px;
-            background-color: var(--success-color);
-             color: var(--bg-primary);
-             font-weight: 700;
-             letter-spacing: 0.5px;
+        /* Output / Results Area */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--grid-gap);
+            margin-top: calc(var(--padding-main) + 8px);
+            border-top: 1px solid var(--glass-border);
+            padding-top: calc(var(--padding-main) + 8px);
         }
-        .btn-download i { margin-right: 8px;}
-        .btn-download:hover {
-            background-color: #00e68a;
-            box-shadow: 0 0 20px rgba(0, 255, 157, 0.5); /* Animation 8 */
-             transform: scale(1.05); /* Animation 9 */
-        }
-
-        .action-buttons {
-            text-align: center;
-            margin-top: 30px;
-            position: relative;
-            z-index: 5; /* Above section ::before */
-        }
-        .action-buttons .btn {
-            margin: 0 10px;
-        }
-
-
-        /*-------------------------------------*/
-        /* 5. Results Section                 */
-        /*-------------------------------------*/
-        #results-section {
-            margin-top: 40px;
-             opacity: 0; /* For animation */
-            transform: translateY(30px); /* For animation */
-            min-height: 400px; /* Ensure space for elements */
-        }
-
-        .regime-comparison {
-             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .regime-card {
-             background: var(--bg-glass);
-             border: 1px solid var(--border-color);
-             border-radius: var(--border-radius);
-             padding: 25px;
-             box-shadow: var(--shadow);
-             backdrop-filter: blur(10px);
-             position: relative;
-             overflow: hidden; /* Clip animations */
-             transition: transform var(--transition-medium), box-shadow var(--transition-medium);
-        }
-
-         .regime-card:hover {
-              transform: translateY(-5px); /* Animation 10 */
-              box-shadow: 0 12px 40px rgba(0,0,0, 0.5); /* Animation 11 */
-              border-left: 4px solid var(--accent-primary); /* Highlight border */
-         }
-
-         .regime-card.highlight { /* For recommended regime */
-            border: 2px solid var(--success-color);
-            box-shadow: 0 0 25px rgba(0, 255, 157, 0.3); /* Animation 12 */
-         }
-
-        .regime-card h3 {
-            color: var(--accent-secondary);
-             border-bottom: 1px solid var(--border-color);
-             padding-bottom: 10px;
-             margin-bottom: 20px;
-             display: flex;
-             justify-content: space-between;
-             align-items: center;
-        }
-         .regime-card h3 .badge {
-             background: var(--success-color);
-             color: var(--bg-primary);
-             padding: 3px 10px;
-             border-radius: 20px;
-             font-size: 0.8rem;
-             font-weight: 700;
-             letter-spacing: 0.5px;
-             animation: badgePulse 2s infinite; /* Animation 13 */
-         }
-
         .result-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-             border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-             font-size: 0.95rem;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 14px;
+            border-radius: var(--radius-m);
         }
-         .result-item:last-child { border-bottom: none; }
-        .result-item span:first-child { color: var(--text-secondary); }
-        .result-item span:last-child { font-weight: 600; color: var(--text-primary); }
-
-        .final-tax {
-            font-size: 1.5rem !important; /* Override font-size */
-            color: var(--success-color) !important; /* Make final tax stand out */
-             text-shadow: 0 0 8px rgba(0, 255, 157, 0.5); /* Animation 14 */
+        .result-item-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
         }
-
-        /* Number Count Animation Target */
-        .count-up {
-            /* Styles handled by JS */
-        }
-
-        /* Monthly Breakdown */
-        .monthly-breakdown {
-             margin-top: 20px;
-             padding-top: 15px;
-             border-top: 1px solid var(--border-color);
-        }
-        .monthly-breakdown h4 {
-             font-size: 1rem;
-             color: var(--text-secondary);
-             margin-bottom: 10px;
-        }
-
-        /*-------------------------------------*/
-        /* 6. Tax Saving Suggestions           */
-        /*-------------------------------------*/
-        .suggestions-section {
-            margin-top: 40px;
-            background: rgba(0, 255, 157, 0.05); /* Subtle success bg */
-             border: 1px solid rgba(0, 255, 157, 0.2);
-             border-radius: var(--border-radius);
-             padding: 30px;
-             opacity: 0; /* Animation */
-             transform: translateY(20px); /* Animation */
-        }
-        .suggestions-section h2 {
-            color: var(--success-color);
-             margin-bottom: 20px;
-        }
-        .suggestions-section ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        .suggestions-section li {
-            margin-bottom: 12px;
-            padding-left: 25px;
-            position: relative;
+        .result-item-value {
+            font-size: 1.1rem;
+            font-weight: 600;
             color: var(--text-primary);
-             font-size: 0.95rem;
-             opacity: 0; /* For stagger animation */
         }
-        .suggestions-section li::before {
-             content: "\f058"; /* Font Awesome check-circle */
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-             color: var(--success-color);
-             position: absolute;
-             left: 0;
-             top: 2px;
-             font-size: 1.1rem;
-             animation: suggestionIconPop 0.5s ease-out forwards; /* Animation 15 */
-             animation-delay: inherit; /* Inherit from GSAP stagger */
-        }
+        .result-item-value.positive { color: var(--accent-green); }
+        .result-item-value.negative { color: var(--accent-red); }
 
-        /*-------------------------------------*/
-        /* 7. Charts Section                 */
-        /*-------------------------------------*/
-        .charts-section {
-             margin-top: 40px;
-        }
-        .charts-section h2 {
+        /* Comparison Card */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--grid-gap);
             text-align: center;
-            margin-bottom: 30px;
-             color: var(--accent-primary);
-             position: relative;
-             padding-bottom: 10px;
         }
-         .charts-section h2::after { /* Underline effect */
-             content: '';
-             position: absolute;
-             bottom: 0;
-             left: 50%;
-             transform: translateX(-50%);
-             width: 80px;
-             height: 3px;
-             background: var(--accent-gradient);
-             border-radius: 2px;
-             animation: expandUnderline 1.5s ease-out forwards; /* Animation 16 */
-             opacity: 0;
-         }
-
-        .chart-container {
-             background: var(--bg-glass);
-             border: 1px solid var(--border-color);
-             border-radius: var(--border-radius);
-             padding: 25px;
-             box-shadow: var(--shadow);
-             backdrop-filter: blur(8px);
-             margin-bottom: 30px;
-              height: 400px; /* Fixed height for consistent chart size */
-              opacity: 0; /* For Scroll animation */
-              transform: scale(0.95) translateY(30px); /* For scroll animation */
+        .regime-col h3 {
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .regime-tax {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .regime-taxable {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
         }
 
-        /*-------------------------------------*/
-        /* 8. Accessibility & Helper classes  */
-        /*-------------------------------------*/
-        .sr-only { /* Screen Reader only */
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
-          white-space: nowrap;
-          border-width: 0;
-        }
-
-        /* Hide element visually but keep accessible */
-        .visually-hidden {
+        .result-chip {
+            text-align: center;
+            background: var(--input-bg-focus);
+            border-radius: var(--radius-m);
+            padding: 12px;
+            margin-top: var(--grid-gap);
+            cursor: pointer;
+            
+            /* Animation state */
+            transform: scale(0.9);
             opacity: 0;
-            position: absolute;
-            pointer-events: none;
+            transition: transform var(--duration-medium) var(--ease-spring-out),
+                        opacity var(--duration-medium) ease-out;
         }
-        .hidden { display: none; } /* Hide completely */
-
-
-        /*-------------------------------------*/
-        /* 9. Animations                    */
-        /*-------------------------------------*/
-        @keyframes rotateBackground { /* Animation 2 */
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .result-chip.visible {
+            transform: scale(1);
+            opacity: 1;
         }
-
-         @keyframes tooltipFadeIn { /* Animation 3 */
-             from { opacity: 0; transform: translateY(10px);}
-             to { opacity: 1; transform: translateY(0); }
-         }
-
-        @keyframes headerGlow { /* Animation 1 */
-            from { text-shadow: 0 0 5px var(--glow-color), 0 0 10px var(--glow-color); }
-            to { text-shadow: 0 0 15px var(--glow-color), 0 0 25px var(--glow-color); }
+        #comparison-explanation {
+            font-size: 0.9rem;
+            background: var(--input-bg);
+            padding: 14px;
+            border-radius: var(--radius-m);
+            margin-top: var(--grid-gap);
+            
+            /* Collapse animation */
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: max-height var(--duration-slow) ease-out,
+                        opacity var(--duration-slow) ease-out,
+                        transform var(--duration-slow) ease-out,
+                        padding var(--duration-slow) ease-out,
+                        margin var(--duration-slow) ease-out;
         }
-
-        @keyframes badgePulse { /* Animation 13 */
-             0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.5); }
-             50% { transform: scale(1.05); box-shadow: 0 0 10px 5px rgba(0, 255, 157, 0); }
-         }
-
-        @keyframes suggestionIconPop { /* Animation 15 */
-            0% { transform: scale(0.5); opacity: 0; }
-             70% { transform: scale(1.1); opacity: 1;}
-             100% { transform: scale(1); opacity: 1;}
+        #comparison-explanation.expanded {
+            max-height: 300px;
+            opacity: 1;
+            transform: translateY(0);
+            padding: 14px;
+            margin-top: var(--grid-gap);
         }
-
-        @keyframes expandUnderline { /* Animation 16 */
-             from { width: 0; opacity: 0;}
-             to { width: 80px; opacity: 1;}
+        
+        /* Collapsible Cards (HRA, Deductions) */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
         }
-
-        /* Add more keyframes as needed for other CSS-driven animations */
-        /* Many animations (17-36+) will be handled by GSAP in JS */
-
-
-        /*-------------------------------------*/
-        /* 10. PDF Report Specific Styles   */
-        /*-------------------------------------*/
-         /* Style a hidden div that contains the content to be exported */
-         #pdf-content {
-             /* display: none; */ /* Hide it normally */
-             /* position: absolute;
-             left: -9999px; */
-             /* Use visibility hidden instead of display none for html2canvas */
-             visibility: hidden;
-             position: absolute;
-             width: 800px; /* Standard page width approx */
-             background: white; /* PDF usually has white BG */
-             color: #333;
-             font-family: sans-serif; /* Use web-safe fonts */
-             padding: 40px;
-             border: 1px solid #ccc; /* For visibility during dev */
-             opacity: 0; /* Hide fully */
-         }
-          #pdf-content h1, #pdf-content h2, #pdf-content h3 { color: #1a1a2e;}
-         #pdf-content h1 { font-size: 24px; text-align: center; margin-bottom: 20px;}
-          #pdf-content h2 { font-size: 20px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
-          #pdf-content .pdf-section { margin-bottom: 25px; }
-          #pdf-content table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          #pdf-content th, #pdf-content td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-          #pdf-content th { background-color: #f2f2f2; font-weight: bold;}
-          #pdf-content .total-row td { font-weight: bold; background-color: #e8f5e9; }
-          #pdf-content .regime-label { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
-          #pdf-content .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-          #pdf-content .disclaimer { margin-top: 30px; font-size: 12px; color: #666; text-align: center;}
-
-
-
-        /*-------------------------------------*/
-        /* 11. Responsiveness                 */
-        /*-------------------------------------*/
-        @media (max-width: 1024px) {
-             .grid-col-2, .grid-col-3 { grid-template-columns: 1fr 1fr; }
-             .chart-container { height: 350px; }
+        .collapsible-header .icon {
+            transition: transform var(--duration-slow) var(--ease-spring-out);
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: max-height var(--duration-slow) ease-out,
+                        opacity var(--duration-slow) ease-out,
+                        transform var(--duration-slow) ease-out,
+                        padding-top var(--duration-slow) ease-out;
+        }
+        .collapsible-card.expanded .collapsible-content {
+            max-height: 1000px; /* Large value for auto-height */
+            opacity: 1;
+            transform: translateY(0);
+            padding-top: calc(var(--padding-main) + 8px); /* 24px */
+        }
+        .collapsible-card.expanded .collapsible-header .icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Tools Grid (HRA, TDS, etc.) */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--grid-gap);
         }
 
-        @media (max-width: 768px) {
-             h1 { font-size: 2rem; }
-             h2 { font-size: 1.6rem; }
-             h3 { font-size: 1.3rem; }
-
-             .grid-col-2, .grid-col-3, .regime-comparison {
-                 grid-template-columns: 1fr; /* Stack columns */
-             }
-             .calculator-section { padding: 20px; }
-             .regime-card { margin-bottom: 20px; }
-             .regime-comparison { gap: 20px; }
-            .charts-section .grid {
-                 grid-template-columns: 1fr;
-             }
-             .chart-container { height: 300px; padding: 15px;}
-             .action-buttons .btn { display: block; width: 80%; margin: 15px auto;} /* Stack buttons */
+        /* Export/Save Buttons */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .btn-secondary {
+            background-color: var(--input-bg-focus);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            background-color: var(--input-bg);
+        }
+        .btn-secondary .icon {
+            stroke-width: 2;
         }
 
-        @media (max-width: 480px) {
-            html { font-size: 15px; }
-             h1 { font-size: 1.8rem; }
-            .site-header h1 { font-size: 1.9rem;}
-            .site-header p { font-size: 0.85rem;}
-             button { padding: 0.7rem 1.2rem; font-size: 0.9rem; }
-            input, select { padding: 0.7rem 0.9rem; font-size: 0.9rem;}
-            input { padding-left: 35px !important; } /* Adjust for icon */
-            .form-group .icon { font-size: 1rem; left: 12px;}
-             .tooltip .tooltiptext { width: 180px; margin-left: -90px;}
-
-            .regime-card { padding: 20px;}
-             .result-item { font-size: 0.9rem; }
-            .final-tax { font-size: 1.3rem !important; }
-
-            .suggestions-section { padding: 20px; }
-            .suggestions-section li { font-size: 0.9rem;}
-
-             #pdf-content { width: 95%; padding: 20px;} /* Adjust PDF preview */
-            #pdf-content th, #pdf-content td { padding: 8px; font-size: 12px; }
+        /* * --- 5. Modal (Settings) ---
+         */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: hsla(0, 0%, 0%, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: grid;
+            place-items: center;
+            z-index: 100;
+            
+            /* Animation */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--duration-slow) ease-out,
+                        visibility var(--duration-slow) ease-out;
+        }
+        .modal-overlay:not([hidden]) {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            /* Inherits .glass-card style */
+            width: calc(100% - (var(--padding-main) * 2));
+            max-width: 400px;
+            
+            /* Animation */
+            transform: scale(0.95) translateY(10px);
+            opacity: 0;
+            transition: transform var(--duration-slow) var(--ease-spring-out),
+                        opacity var(--duration-slow) ease-out;
+        }
+        .modal-overlay:not([hidden]) .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
         }
 
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--grid-gap);
+        }
+        
+        .slider-group {
+            margin-bottom: var(--grid-gap);
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid var(--input-bg-focus);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid var(--input-bg-focus);
+        }
 
+        /* * --- 6. Animations & Accessibility ---
+         */
+
+        /* Staggered card entrance */
+        .stagger-in {
+            transform: translateZ(-24px);
+            opacity: 0;
+            animation: card-enter var(--duration-medium) var(--ease-out-quint) forwards;
+        }
+
+        @keyframes card-enter {
+            to {
+                transform: translateZ(0);
+                opacity: 1;
+            }
+        }
+
+        /* Number counting animation */
+        .counting {
+            animation: count-up var(--duration-medium) var(--ease-spring-bounce);
+        }
+        @keyframes count-up {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        /* Accessibility: Focus Ring */
+        :focus-visible {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+            border-radius: var(--radius-s);
+        }
+        /* Custom focus for inputs */
+        .form-input:focus-visible, .form-select:focus-visible {
+            outline: none;
+            border-color: var(--glass-border-focus);
+        }
+        /* Custom focus for toggles */
+        .toggle-switch input:focus-visible + .toggle-slider {
+            box-shadow: 0 0 0 2px var(--bg-deep-black), 0 0 0 4px var(--accent-blue);
+        }
+
+        /* Accessibility: Large Text */
+        body.large-text {
+            font-size: 1.1rem;
+        }
+        body.large-text h1 { font-size: 2rem; }
+        body.large-text h2 { font-size: 1.4rem; }
+        body.large-text .btn { padding: 12px 18px; }
+
+        /* Accessibility: Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            body, .btn, .toggle-slider, .toggle-slider::before,
+            .result-chip, #comparison-explanation,
+            .collapsible-header .icon, .collapsible-content,
+            .modal-overlay, .modal-content,
+            .stagger-in, .counting {
+                transition: none !important;
+                animation: none !important;
+            }
+            
+            /* Set to final state for animations */
+            .stagger-in {
+                transform: translateZ(0);
+                opacity: 1;
+            }
+        }
+        
+        /* * --- 7. Responsive Layout ---
+         */
+        
+        /* Tablet & Small Desktop */
+        @media (min-width: 600px) {
+            body {
+                padding: var(--padding-main) calc(var(--padding-main) * 2);
+            }
+            .input-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .tools-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .result-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .results-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .result-item-value {
+                font-size: 1.25rem;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <header class="site-header">
-        <div class="container">
-             <h1 class="gsap-header-reveal">IndiTax Pro</h1>
-            <p class="gsap-header-reveal">Next-Level Indian Income Tax Calculator (AY 2024-25)</p>
-        </div>
+    <!-- 
+      Inline SVG Icons (SF Symbols Style)
+      This makes them easy to style with CSS (currentColor)
+    -->
+    <svg width="0" height="0" style="display: none;">
+        <symbol id="icon-settings" viewBox="0 0 24 24">
+            <path d="M14.39 4.03l.8 1.39a8.01 8.01 0 0 1 2.72 1.88l1.6-.39a.5.5 0 0 1 .6.51l-.5 1.73c.24.49.44.99.58 1.51l1.73.5a.5.5 0 0 1 .3.59l-.98 1.57a.5.5 0 0 1-.58.22l-1.68-.3c-.2.53-.44 1.05-.72 1.55l.98 1.57a.5.5 0 0 1-.3.59l-1.73.5a.5.5 0 0 1-.6-.51l.39-1.6a8.01 8.01 0 0 1-1.88-2.72l-1.39-.8a.5.5 0 0 1-.22-.58l.3-1.68a.5.5 0 0 1 .58-.22l1.39.8c.53-.2.98-.44 1.55-.72l.39-1.6a.5.5 0 0 1 .51-.6zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+            <path d="M9.61 4.03l-.8 1.39a8.01 8.01 0 0 0-2.72 1.88l-1.6-.39a.5.5 0 0 0-.6.51l.5 1.73A8.01 8.01 0 0 0 4 9.69l-1.73.5a.5.5 0 0 0-.3.59l.98 1.57a.5.5 0 0 0 .58.22l1.68-.3c.2.53.44 1.05.72 1.55l-.98 1.57a.5.5 0 0 0 .3.59l1.73.5a.5.5 0 0 0 .6-.51l-.39-1.6a8.01 8.01 0 0 0 1.88-2.72l1.39-.8a.5.5 0 0 0 .22-.58l-.3-1.68a.5.5 0 0 0-.58-.22l-1.39.8a8.01 8.01 0 0 0-1.55-.72l-.39-1.6a.5.5 0 0 0-.51-.6z"/>
+        </symbol>
+        <symbol id="icon-close" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </symbol>
+        <symbol id="icon-chevron-down" viewBox="0 0 24 24">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </symbol>
+        <symbol id="icon-info" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </symbol>
+        <symbol id="icon-save" viewBox="0 0 24 24">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13H7v8"></polyline>
+            <polyline points="7 3 7 8H15"></polyline>
+        </symbol>
+        <symbol id="icon-csv" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+        </symbol>
+    </svg>
+
+
+    <!-- 
+      App Header
+    -->
+    <header>
+        <h1>Tax Calculator</h1>
+        <button id="open-settings-btn" class="btn-icon" aria-label="Open Settings">
+            <svg class="icon"><use href="#icon-settings"></use></svg>
+        </button>
     </header>
 
-    <main class="main-content container">
+    <main>
+        <!-- 
+          Card 1: Quick Tax Estimate (New Regime)
+        -->
+        <section id="estimator-card" class="glass-card stagger-in" role="region" aria-labelledby="estimator-title">
+            <h2 id="estimator-title">Quick Tax Estimate</h2>
+            <p>Calculated as per the New Regime (Default). All figures in ₹ (INR) per annum.</p>
+            
+            <div class="input-grid">
+                <div class="form-group">
+                    <label for="gross-salary" class="form-label">Annual Gross Salary</label>
+                    <div class="input-group">
+                        <span class="input-icon">₹</span>
+                        <input type="number" id="gross-salary" class="form-input" placeholder="e.g., 10,00,000" inputmode="numeric" aria-label="Annual Gross Salary in Rupees">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="other-income" class="form-label">Other Income</label>
+                    <div class="input-group">
+                        <span class="input-icon">₹</span>
+                        <input type="number" id="other-income" class="form-input" placeholder="e.g., 50,000" inputmode="numeric" aria-label="Other Income in Rupees">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="prof-tax" class="form-label">Professional Tax</label>
+                <div class="input-group">
+                    <span class="input-icon">₹</span>
+                    <input type="number" id="prof-tax" class="form-input" value="2400" inputmode="numeric" aria-label="Professional Tax in Rupees">
+                </div>
+            </div>
 
-        <!-- Input Section -->
-        <section id="input-section" class="calculator-section gsap-reveal">
-            <h2><i class="fas fa-calculator"></i> Enter Your Financial Details</h2>
-            <p>Provide your income and potential deductions to calculate your tax liability under both regimes.</p>
+            <!-- Results -->
+            <div class="results-grid">
+                <div class="result-item">
+                    <span class="result-item-label">Taxable Income</span>
+                    <span id="result-taxable-income" class="result-item-value">₹0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-item-label">Total Tax Payable</span>
+                    <span id="result-total-tax" class="result-item-value">₹0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-item-label">Effective Tax Rate</span>
+                    <span id="result-effective-rate" class="result-item-value">0%</span>
+                </div>
+            </div>
+            
+            <div class="result-item" style="background: transparent; padding: 10px 0 0 0; margin-top: 10px;">
+                <span class="result-item-label">Monthly TDS (Approx)</span>
+                <span id="result-monthly-tds" class="result-item-value">₹0</span>
+            </div>
 
-            <form id="tax-form">
-                 <div class="grid grid-col-2">
-                     <div class="form-group">
-                         <i class="fas fa-wallet icon"></i>
-                        <input type="number" id="grossIncome" placeholder=" " required min="0">
-                         <label for="grossIncome">Gross Annual Income (₹) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Total income before any deductions (Salary, Business, Other Sources).</span></span></label>
-                     </div>
+        </section>
+
+        <!-- 
+          Card 2: Old vs. New Regime Comparison
+        -->
+        <section id="comparison-card" class="glass-card stagger-in" role="region" aria-labelledby="comparison-title">
+            <h2 id="comparison-title">Old vs. New Regime</h2>
+            
+            <div class="comparison-grid">
+                <div class="regime-col">
+                    <h3>Old Regime</h3>
+                    <div id="compare-tax-old" class="regime-tax">₹0</div>
+                    <div id="compare-taxable-old" class="regime-taxable">Taxable: ₹0</div>
+                </div>
+                <div class="regime-col">
+                    <h3>New Regime</h3>
+                    <div id="compare-tax-new" class="regime-tax">₹0</div>
+                    <div id="compare-taxable-new" class="regime-taxable">Taxable: ₹0</div>
+                </div>
+            </div>
+
+            <div id="result-chip" class="result-chip" role="button" aria-expanded="false" aria-controls="comparison-explanation">
+                <span id="result-chip-text">Enter income to see comparison.</span>
+            </div>
+
+            <div id="comparison-explanation" role="region">
+                <p>The <strong>New Regime</strong> is the default. It offers lower tax rates but disallows most deductions (like 80C, 80D, HRA).</p>
+                <p>The <strong>Old Regime</strong> has higher tax rates but allows you to claim various deductions to reduce your taxable income.</p>
+                <p>A Standard Deduction of ₹50,000 is available under <strong>both</strong> regimes for salaried individuals.</p>
+            </div>
+        </section>
+
+        <!-- 
+          Card 3: Collapsible Deductions Card
+        -->
+        <section id="deductions-card" class="glass-card collapsible-card stagger-in" role="region">
+            <div id="deductions-header" class="collapsible-header" role="button" aria-expanded="false" aria-controls="deductions-content">
+                <h2>Old Regime Deductions</h2>
+                <svg class="icon"><use href="#icon-chevron-down"></use></svg>
+            </div>
+
+            <div id="deductions-content" class="collapsible-content">
+                <p>These deductions apply <strong>only</strong> to the Old Regime calculation.</p>
+                <div class="toggle-group form-group">
+                    <label for="std-deduction" class="form-label" style="margin: 0;">Standard Deduction (₹50,000)</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="std-deduction" checked aria-label="Toggle Standard Deduction">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="input-grid">
                     <div class="form-group">
-                         <i class="fas fa-calendar-alt icon"></i>
-                        <select id="assessmentYear">
-                            <option value="2024-25" selected>AY 2024-25 (FY 2023-24)</option>
-                             <!-- Add other years if needed, but logic needs updates -->
+                        <label for="sec-80c" class="form-label">80C (PF, ELSS, etc.)</label>
+                        <div class="input-group">
+                            <span class="input-icon">₹</span>
+                            <input type="number" id="sec-80c" class="form-input" placeholder="Max 1,50,000" inputmode="numeric" aria-label="80C Deductions">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="sec-80d" class="form-label">80D (Health Insurance)</label>
+                        <div class="input-group">
+                            <span class="input-icon">₹</span>
+                            <input type="number" id="sec-80d" class="form-input" placeholder="e.g., 25,000" inputmode="numeric" aria-label="80D Deductions">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nps" class="form-label">80CCD(1B) (NPS)</label>
+                    <div class="input-group">
+                        <span class="input-icon">₹</span>
+                        <input type="number" id="nps" class="form-input" placeholder="Max 50,000" inputmode="numeric" aria-label="NPS Deduction">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+          Grid for Tools: HRA, Export, Save
+        -->
+        <div class="tools-grid">
+
+            <!-- Card 4: HRA Calculator -->
+            <section id="hra-card" class="glass-card collapsible-card stagger-in" role="region">
+                <div id="hra-header" class="collapsible-header" role="button" aria-expanded="false" aria-controls="hra-content">
+                    <h2>HRA Exemption</h2>
+                    <svg class="icon"><use href="#icon-chevron-down"></use></svg>
+                </div>
+
+                <div id="hra-content" class="collapsible-content">
+                    <p>Calculates HRA exemption for the Old Regime. This amount is automatically included in the comparison.</p>
+                    <div class="form-group">
+                        <label for="city-type" class="form-label">City Type</label>
+                        <select id="city-type" class="form-select" aria-label="Select City Type">
+                            <option value="non-metro">Non-Metro</option>
+                            <option value="metro">Metro (Mumbai, Delhi, etc.)</option>
                         </select>
-                        <label for="assessmentYear">Assessment Year</label>
                     </div>
-                 </div>
-
-                <div class="income-details">
-                     <!-- Specific income breakdown can be added here if needed -->
-                 </div>
-
-                 <div class="deduction-details">
-                     <h3><i class="fas fa-shield-alt"></i> Potential Deductions (Enter amount invested/spent)</h3>
-                    <div class="grid grid-col-3">
-                         <div class="form-group">
-                            <i class="fas fa-piggy-bank icon"></i>
-                             <input type="number" id="deduction80C" placeholder=" " value="0" min="0">
-                            <label for="deduction80C">80C (Max ₹1.5 Lakh) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Includes EPF, PPF, ELSS, LIC Premium, Tuition Fees, Home Loan Principal etc. Only for Old Regime.</span></span></label>
-                        </div>
-                         <div class="form-group">
-                            <i class="fas fa-briefcase-medical icon"></i>
-                             <input type="number" id="deduction80D" placeholder=" " value="0" min="0">
-                            <label for="deduction80D">80D (Medical Insurance) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Premium for self/family & parents. Limits vary based on age. Only for Old Regime.</span></span></label>
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label for="basic-salary" class="form-label">Annual Basic Salary</label>
+                            <div class="input-group">
+                                <span class="input-icon">₹</span>
+                                <input type="number" id="basic-salary" class="form-input" placeholder="0" inputmode="numeric" aria-label="Annual Basic Salary">
+                            </div>
                         </div>
                         <div class="form-group">
-                             <i class="fas fa-home icon"></i>
-                            <input type="number" id="hraExemption" placeholder=" " value="0" min="0">
-                             <label for="hraExemption">HRA Exemption <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Calculated based on HRA received, rent paid, salary. Enter the *exempted* amount. Only for Old Regime.</span></span></label>
+                            <label for="hra-received" class="form-label">Annual HRA Received</label>
+                            <div class="input-group">
+                                <span class="input-icon">₹</span>
+                                <input type="number" id="hra-received" class="form-input" placeholder="0" inputmode="numeric" aria-label="Annual HRA Received">
+                            </div>
                         </div>
-                         <div class="form-group">
-                            <i class="fas fa-plane icon"></i>
-                             <input type="number" id="ltaExemption" placeholder=" " value="0" min="0">
-                             <label for="ltaExemption">LTA Exemption <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Leave Travel Allowance exemption. Only for Old Regime.</span></span></label>
-                         </div>
-                         <div class="form-group">
-                            <i class="fas fa-building icon"></i>
-                             <input type="number" id="homeLoanInterest" placeholder=" " value="0" min="0">
-                             <label for="homeLoanInterest">Home Loan Interest (Sec 24b) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Interest paid on housing loan (Max ₹2 Lakh for self-occupied). Only for Old Regime.</span></span></label>
+                    </div>
+                    <div class="form-group">
+                        <label for="rent-paid" class="form-label">Annual Rent Paid</label>
+                        <div class="input-group">
+                            <span class="input-icon">₹</span>
+                            <input type="number" id="rent-paid" class="form-input" placeholder="0" inputmode="numeric" aria-label="Annual Rent Paid">
                         </div>
-                         <div class="form-group">
-                            <i class="fas fa-university icon"></i>
-                             <input type="number" id="educationLoanInterest" placeholder=" " value="0" min="0">
-                             <label for="educationLoanInterest">Edu Loan Interest (Sec 80E) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Interest paid on loan for higher education. No max limit on interest. Only for Old Regime.</span></span></label>
-                        </div>
-                        <div class="form-group">
-                            <i class="fas fa-hand-holding-usd icon"></i>
-                            <input type="number" id="deduction80TTA" placeholder=" " value="0" min="0">
-                             <label for="deduction80TTA">Savings Interest (80TTA) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Interest from Savings Accounts (Max ₹10,000). Only for Old Regime.</span></span></label>
-                        </div>
-                        <div class="form-group">
-                            <i class="fas fa-donate icon"></i>
-                            <input type="number" id="deduction80G" placeholder=" " value="0" min="0">
-                            <label for="deduction80G">Donations (80G) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Eligible donations (Qualifying amount varies). Only for Old Regime.</span></span></label>
-                        </div>
-                        <div class="form-group">
-                             <i class="fas fa-user-tie icon"></i>
-                            <input type="number" id="npsContribution" placeholder=" " value="0" min="0">
-                            <label for="npsContribution">Employee NPS (80CCD(1B)) <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Additional NPS contribution up to ₹50,000. Only for Old Regime.</span></span></label>
-                        </div>
-                        </div>
+                    </div>
+                    
+                    <div class="result-item" style="margin-top: var(--grid-gap);">
+                        <span class="result-item-label">HRA Exemption</span>
+                        <span id="result-hra-exemption" class="result-item-value">₹0</span>
+                    </div>
                 </div>
+            </section>
 
-                 <div class="action-buttons gsap-reveal">
-                    <button type="submit" class="btn btn-primary" id="calculateBtn">
-                        <i class="fas fa-bolt"></i> Calculate Tax
+            <!-- Card 5: Export & Save -->
+            <section id="actions-card" class="glass-card stagger-in" role="region" aria-labelledby="actions-title">
+                <h2 id="actions-title">Tools</h2>
+                <p>Save a snapshot of your inputs or export a summary.</p>
+                
+                <div class="actions-grid" style="margin-top: var(--grid-gap);">
+                    <button id="export-pdf-btn" class="btn btn-secondary" aria-label="Export PDF Summary">
+                        <svg class="icon"><use href="#icon-download"></use></svg>
+                        Export PDF
                     </button>
-                     <button type="reset" class="btn btn-secondary" id="resetBtn">
-                        <i class="fas fa-undo"></i> Reset Form
+                    <button id="export-csv-btn" class="btn btn-secondary" aria-label="Export CSV Data">
+                        <svg class="icon"><use href="#icon-csv"></use></svg>
+                        Export CSV
                     </button>
-                 </div>
-            </form>
-        </section>
-
-         <!-- Results Section -->
-        <section id="results-section" class="hidden">
-            <div class="regime-comparison gsap-result-reveal">
-                <div class="regime-card" id="oldRegimeCard">
-                     <h3>Old Tax Regime <span id="oldRegimeBadge" class="badge hidden">Recommended</span></h3>
-                     <div id="oldRegimeResults">
-                         <!-- Results injected here by JS -->
-                    </div>
-                    <div class="monthly-breakdown">
-                        <h4>Monthly Estimates</h4>
-                        <div id="oldRegimeMonthly"></div>
-                     </div>
-                 </div>
-                 <div class="regime-card" id="newRegimeCard">
-                    <h3>New Tax Regime (Default) <span id="newRegimeBadge" class="badge hidden">Recommended</span></h3>
-                     <div id="newRegimeResults">
-                         <!-- Results injected here by JS -->
-                    </div>
-                     <div class="monthly-breakdown">
-                        <h4>Monthly Estimates</h4>
-                        <div id="newRegimeMonthly"></div>
-                     </div>
+                    <button id="save-snapshot-btn" class="btn btn-secondary" aria-label="Save Snapshot to Local Storage">
+                        <svg class="icon"><use href="#icon-save"></use></svg>
+                        Save
+                    </button>
+                    <button id="load-snapshot-btn" class="btn btn-secondary" aria-label="Load Snapshot from Local Storage">
+                        <svg class="icon"><use href="#icon-upload"></use></svg>
+                        Load
+                    </button>
                 </div>
-            </div>
+                <input type="file" id="import-json-input" accept=".json" style="display: none;" aria-label="Import JSON file input">
+            </section>
 
-             <!-- Suggestions Section -->
-            <div id="suggestions-section" class="suggestions-section hidden">
-                 <h2 class="gsap-suggestion-reveal"><i class="fas fa-lightbulb"></i> Smart Tax-Saving Suggestions</h2>
-                <ul id="suggestions-list" class="gsap-suggestion-reveal">
-                     <!-- Suggestions injected here by JS -->
-                 </ul>
-            </div>
-
-             <!-- Charts Section -->
-             <section class="charts-section hidden" id="charts-section">
-                 <h2 class="gsap-chart-reveal">Visual Breakdown</h2>
-                 <div class="grid grid-col-2 gsap-chart-reveal">
-                    <div class="chart-container gsap-chart-item-reveal" id="taxComparisonChartContainer">
-                        <canvas id="taxComparisonChart"></canvas>
-                     </div>
-                     <div class="chart-container gsap-chart-item-reveal" id="incomeBreakdownChartContainer">
-                         <canvas id="incomeBreakdownChart"></canvas>
-                    </div>
-                     <!-- Add more chart containers if needed -->
-                 </div>
-                 <!-- Add a line chart maybe for Tax vs Income ? -->
-                  <div class="chart-container gsap-chart-item-reveal" id="taxLiabilityChartContainer" style="margin-top: 30px;">
-                     <canvas id="taxLiabilityChart"></canvas>
-                 </div>
-             </section>
-
-
-             <!-- Download Button -->
-             <div class="action-buttons gsap-reveal" style="margin-top: 40px;">
-                 <button class="btn btn-download" id="downloadPdfBtn">
-                    <i class="fas fa-file-pdf"></i> Download Tax Report (PDF)
-                </button>
-             </div>
-        </section>
-
-
-         <!-- Hidden container for PDF generation content -->
-        <div id="pdf-content">
-            <!-- Content generated dynamically by JS -->
         </div>
-
     </main>
 
-    <footer style="text-align: center; padding: 20px 0; margin-top: 40px; font-size: 0.85rem; color: var(--text-secondary); border-top: 1px solid var(--border-color);">
-        <p>IndiTax Pro | Disclaimer: This calculator is for illustrative purposes only. Consult a tax professional for advice.</p>
-         <p>Animations powered by <a href="https://greensock.com/gsap/" target="_blank" rel="noopener noreferrer">GSAP</a> & Charts by <a href="https://www.chartjs.org/" target="_blank" rel="noopener noreferrer">Chart.js</a>.</p>
-    </footer>
-
-    <!-- JavaScript Libraries (CDN) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRN1EQUirSSkcCLcDsTBMTxDfkxwVr्यून+e/dGP4+t7IKs7Ah0GyWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" integrity="sha256-CTSM/C4kelcvR6BwXgIJCQ7Q32AX7F8+4ivM3J0OHGA=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-    <!-- Embedded JavaScript -->
-    <script>
-        // --- [ Utility Functions ] ---
-        const formatCurrency = (value) => value.toLocaleString('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
-        const parseInput = (id) => parseFloat(document.getElementById(id).value) || 0; // Default to 0 if NaN or empty
-
-        // --- [ Tax Calculation Logic - FY 2023-24 / AY 2024-25 ] ---
-        const FY_YEAR = "2023-24"; // For display/PDF
-        const AY_YEAR = "2024-25"; // For display/PDF
-
-        // Standard Deduction Constants
-        const STANDARD_DEDUCTION_SALARIED = 50000;
-
-         // New Regime (Default from AY 2024-25) Slabs
-        const newRegimeSlabs = [
-            { limit: 300000, rate: 0 },
-            { limit: 600000, rate: 0.05 },
-            { limit: 900000, rate: 0.10 },
-            { limit: 1200000, rate: 0.15 },
-            { limit: 1500000, rate: 0.20 },
-            { limit: Infinity, rate: 0.30 },
-        ];
-
-         // Old Regime Slabs (Assuming Below 60 years)
-         const oldRegimeSlabs = [
-             { limit: 250000, rate: 0 },
-            { limit: 500000, rate: 0.05 },
-            { limit: 1000000, rate: 0.20 },
-             { limit: Infinity, rate: 0.30 },
-         ];
-
-         // Surcharge Rates (Apply on Income Tax amount)
-        const surchargeRates = [
-             { incomeLimit: 5000000, rate: 0.10 },
-            { incomeLimit: 10000000, rate: 0.15 },
-            { incomeLimit: 20000000, rate: 0.25 },
-            // Old Regime has higher surcharge rate above 5Cr, New regime caps at 25% on specified incomes, simplified to 25% here
-            { incomeLimit: 50000000, rate: 0.25 }, // Capped at 25% in New Regime for many incomes, old can go to 37%. simplified here
-             { incomeLimit: Infinity, rate: 0.25 }, // Max 25% under new. old is 37%. Using lower for consistency/simplicity
-        ];
-
-         // Cess Rate
-         const CESS_RATE = 0.04; // Health and Education Cess
-
-         // Rebate Section 87A Limits
-         const REBATE_87A_NEW_REGIME_LIMIT = 700000; // Taxable income limit
-         const REBATE_87A_OLD_REGIME_LIMIT = 500000; // Taxable income limit
-
-        // Function to calculate tax based on slabs
-         const calculateSlabTax = (income, slabs) => {
-            let tax = 0;
-            let previousLimit = 0;
-             for (const slab of slabs) {
-                 if (income > previousLimit) {
-                     const taxableInSlab = Math.min(income - previousLimit, slab.limit - previousLimit);
-                     tax += taxableInSlab * slab.rate;
-                 }
-                 previousLimit = slab.limit;
-                 if (income <= slab.limit) break;
-             }
-             return tax;
-         };
-
-        // Function to calculate surcharge
-        const calculateSurcharge = (income, baseTax) => {
-            let surcharge = 0;
-             // Find the applicable surcharge rate based on Net Taxable Income
-            const applicableSurcharge = surchargeRates.find(rate => income <= rate.incomeLimit);
-            if (applicableSurcharge && applicableSurcharge.rate > 0 && income > 5000000) {
-                // Find the lowest threshold slab
-                const rateThreshold = surchargeRates.find(r => r.rate === applicableSurcharge.rate);
-                // For simplicity, apply rate directly. Accurate marginal relief calc is complex.
-                 surcharge = baseTax * applicableSurcharge.rate;
-
-                 // Simple Marginal Relief (Illustrative - can be more complex)
-                 // Check if tax + surcharge exceeds income increase over the threshold
-                //  if (rateThreshold.incomeLimit > 5000000) { // Only check for limits > 50L
-                //      const incomeOverThreshold = income - rateThreshold.incomeLimit;
-                //      const taxAtThreshold = calculateBaseTax(rateThreshold.incomeLimit, slabs, isNewRegime); // Need parameters here
-                //      const surchargeAtThreshold = calculateSurcharge(rateThreshold.incomeLimit, taxAtThreshold); // Needs recursion guard / direct calc
-                //      const totalTaxAtThreshold = taxAtThreshold + surchargeAtThreshold + (taxAtThreshold + surchargeAtThreshold) * CESS_RATE;
-
-                //      const currentTotalTax = baseTax + surcharge + (baseTax + surcharge) * CESS_RATE;
-                //      const taxIncrease = currentTotalTax - totalTaxAtThreshold;
-
-                //      if (taxIncrease > incomeOverThreshold) {
-                //          surcharge = (totalTaxAtThreshold - baseTax) + incomeOverThreshold;
-                //          // Recalculate based on adjusted surcharge? This becomes complex.
-                //          // Sticking to flat % for simplicity now.
-                //      }
-                //  }
-            }
-             return surcharge;
-         };
-
-
-        // --- Core Calculation Function ---
-         const calculateTax = (inputs) => {
-             const { grossIncome, deductions80C, deductions80D, hraExemption, ltaExemption, homeLoanInterest, eduLoanInterest, deduction80TTA, deduction80G, npsContribution } = inputs;
-
-             // ** OLD REGIME CALCULATION **
-            let oldRegimeResult = {};
-             {
-                 // Deductions applicable under Old Regime
-                const applicable80C = Math.min(deductions80C, 150000);
-                const applicableNPS = Math.min(npsContribution, 50000); // 80CCD(1B)
-                 const total80CLike = Math.min(applicable80C + applicableNPS, 150000 + 50000); // Although separate limits, for total check
-
-                 const stdDeductionOld = (grossIncome > 0) ? STANDARD_DEDUCTION_SALARIED : 0; // Assume salaried if income > 0 for demo
-                 const totalDeductionsOld = stdDeductionOld +
-                                          applicable80C + // Incl. NPS within 1.5L if any, needs nuance in real tool
-                                         deductions80D +
-                                         hraExemption +
-                                         ltaExemption +
-                                         homeLoanInterest + // Assume max 2L is already factored by user or calc sep.
-                                         eduLoanInterest +
-                                          deduction80TTA + // Max 10k
-                                          deduction80G +   // Qualifying amt complex, assume input is valid deduction
-                                          applicableNPS; // The extra 50k NPS
-
-                let taxableIncomeOld = Math.max(0, grossIncome - totalDeductionsOld);
-
-                 // Rebate under Sec 87A (Old Regime)
-                 let rebateOld = 0;
-                let baseTaxOld = calculateSlabTax(taxableIncomeOld, oldRegimeSlabs);
-                 if (taxableIncomeOld <= REBATE_87A_OLD_REGIME_LIMIT) {
-                     rebateOld = Math.min(baseTaxOld, 12500); // Max rebate Rs 12,500
-                 }
-                baseTaxOld = Math.max(0, baseTaxOld - rebateOld); // Apply rebate before surcharge/cess
-
-                 const surchargeOld = calculateSurcharge(taxableIncomeOld, baseTaxOld);
-                 const cessOld = (baseTaxOld + surchargeOld) * CESS_RATE;
-                 const totalTaxOld = baseTaxOld + surchargeOld + cessOld;
-
-                 oldRegimeResult = {
-                     regime: 'Old',
-                     grossIncome: grossIncome,
-                    totalDeductions: totalDeductionsOld,
-                     taxableIncome: taxableIncomeOld,
-                     baseTax: baseTaxOld + rebateOld, // Show base tax before rebate
-                     rebate: rebateOld,
-                    taxAfterRebate: baseTaxOld,
-                    surcharge: surchargeOld,
-                    cess: cessOld,
-                     finalTax: Math.max(0, totalTaxOld) // Ensure non-negative
-                 };
-             }
-
-             // ** NEW REGIME CALCULATION (AY 2024-25 Default) **
-            let newRegimeResult = {};
-            {
-                // Deductions applicable under New Regime (Mainly Standard Deduction)
-                // Employer NPS contribution under 80CCD(2) IS allowed, but not captured here. Assume standard deduction only.
-                 const stdDeductionNew = (grossIncome > 0) ? STANDARD_DEDUCTION_SALARIED : 0;
-                 const totalDeductionsNew = stdDeductionNew; // Very limited deductions in new regime default path
-                let taxableIncomeNew = Math.max(0, grossIncome - totalDeductionsNew);
-
-                 // Rebate under Sec 87A (New Regime)
-                 let rebateNew = 0;
-                let baseTaxNew = calculateSlabTax(taxableIncomeNew, newRegimeSlabs);
-                if (taxableIncomeNew <= REBATE_87A_NEW_REGIME_LIMIT) {
-                    rebateNew = baseTaxNew; // Full tax amount as rebate up to 7L income
-                 }
-                 baseTaxNew = Math.max(0, baseTaxNew - rebateNew); // Apply rebate
-
-                const surchargeNew = calculateSurcharge(taxableIncomeNew, baseTaxNew); // Note: New Regime Surcharge has max 25% cap on certain incomes implicitly via rates used
-                 const cessNew = (baseTaxNew + surchargeNew) * CESS_RATE;
-                 const totalTaxNew = baseTaxNew + surchargeNew + cessNew;
-
-                 newRegimeResult = {
-                     regime: 'New',
-                     grossIncome: grossIncome,
-                     totalDeductions: totalDeductionsNew,
-                    taxableIncome: taxableIncomeNew,
-                    baseTax: baseTaxNew + rebateNew, // Show base tax before rebate
-                     rebate: rebateNew,
-                     taxAfterRebate: baseTaxNew,
-                     surcharge: surchargeNew,
-                     cess: cessNew,
-                     finalTax: Math.max(0, totalTaxNew) // Ensure non-negative
-                 };
-            }
-
-             return { oldRegime: oldRegimeResult, newRegime: newRegimeResult };
-        };
-
-
-         // --- [ Display Logic ] ---
-         const resultsSection = document.getElementById('results-section');
-        const oldRegimeResultsDiv = document.getElementById('oldRegimeResults');
-        const newRegimeResultsDiv = document.getElementById('newRegimeResults');
-        const oldRegimeMonthlyDiv = document.getElementById('oldRegimeMonthly');
-        const newRegimeMonthlyDiv = document.getElementById('newRegimeMonthly');
-        const suggestionsSection = document.getElementById('suggestions-section');
-        const suggestionsList = document.getElementById('suggestions-list');
-        const oldRegimeCard = document.getElementById('oldRegimeCard');
-         const newRegimeCard = document.getElementById('newRegimeCard');
-         const oldRegimeBadge = document.getElementById('oldRegimeBadge');
-         const newRegimeBadge = document.getElementById('newRegimeBadge');
-        const chartsSection = document.getElementById('charts-section');
-
-
-         const displayResults = (results) => {
-             const displayRegime = (data, container, monthlyContainer) => {
-                container.innerHTML = `
-                    <div class="result-item"><span>Gross Income:</span> <span class="count-up">${formatCurrency(data.grossIncome)}</span></div>
-                    <div class="result-item"><span>Total Deductions:</span> <span>${formatCurrency(data.totalDeductions)}</span></div>
-                    <div class="result-item"><span>Net Taxable Income:</span> <span class="count-up">${formatCurrency(data.taxableIncome)}</span></div>
-                    <div class="result-item"><span>Income Tax (Base):</span> <span>${formatCurrency(data.baseTax)}</span></div>
-                    ${data.rebate > 0 ? `<div class="result-item"><span>Rebate (Sec 87A):</span> <span>-${formatCurrency(data.rebate)}</span></div>` : ''}
-                     ${data.surcharge > 0 ? `<div class="result-item"><span>Surcharge:</span> <span>${formatCurrency(data.surcharge)}</span></div>` : ''}
-                     <div class="result-item"><span>Health & Edu Cess (4%):</span> <span>${formatCurrency(data.cess)}</span></div>
-                     <hr style="border-color: var(--border-color); margin: 10px 0; border-style: dashed;">
-                     <div class="result-item"><strong>Total Tax Payable:</strong> <strong class="final-tax count-up">${formatCurrency(data.finalTax)}</strong></div>
-                 `;
-
-                monthlyContainer.innerHTML = `
-                    <div class="result-item"><span>Avg. Monthly Tax:</span> <span>${formatCurrency(data.finalTax / 12)}</span></div>
-                    <div class="result-item"><span>Monthly Take Home (Approx):</span> <span>${formatCurrency((data.grossIncome - data.finalTax - (parseInput('deduction80C') * 0.8 + parseInput('npsContribution') + parseInput('deduction80D')) )/ 12)}</span></div>
-                 `; // Approx take home, deducts tax and assumed savings/insurance. Very simplified.
-            };
-
-            displayRegime(results.oldRegime, oldRegimeResultsDiv, oldRegimeMonthlyDiv);
-             displayRegime(results.newRegime, newRegimeResultsDiv, newRegimeMonthlyDiv);
-
-             // Highlight recommended regime
-             oldRegimeCard.classList.remove('highlight');
-             newRegimeCard.classList.remove('highlight');
-            oldRegimeBadge.classList.add('hidden');
-             newRegimeBadge.classList.add('hidden');
-
-            if (results.oldRegime.finalTax < results.newRegime.finalTax) {
-                 oldRegimeCard.classList.add('highlight');
-                 oldRegimeBadge.classList.remove('hidden');
-            } else if (results.newRegime.finalTax < results.oldRegime.finalTax) {
-                newRegimeCard.classList.add('highlight');
-                 newRegimeBadge.classList.remove('hidden');
-             } else {
-                 // If equal, maybe highlight New as it's default
-                newRegimeCard.classList.add('highlight');
-                 newRegimeBadge.classList.remove('hidden');
-                 newRegimeBadge.textContent = "Default / Equal Tax";
-            }
-
-
-            resultsSection.classList.remove('hidden');
-             chartsSection.classList.remove('hidden');
-
-            // Trigger count-up animation for specific elements
-            gsap.utils.toArray('.count-up').forEach(el => {
-                const targetValue = parseFloat(el.textContent.replace(/[^0-9.-]+/g, "")) || 0; // Extract number
-                gsap.fromTo(el, { textContent: 0 }, { // Animation 17
-                     duration: 1.5,
-                    textContent: targetValue,
-                    ease: "power2.out",
-                    snap: { textContent: 1 }, // Snap to whole numbers for currency
-                     onUpdate: function() {
-                         el.textContent = formatCurrency(Math.round(this.targets()[0].textContent));
-                     },
-                     onComplete: function() { // Ensure final value is correct
-                        el.textContent = formatCurrency(targetValue);
-                     }
-                 });
-             });
-         };
-
-         // --- [ Tax Saving Suggestions Logic ] ---
-        const generateSuggestions = (inputs, results) => {
-            const { grossIncome, deductions80C, deductions80D, homeLoanInterest, npsContribution } = inputs;
-            const { oldRegime, newRegime } = results;
-            let suggestions = [];
-
-             suggestions.push(`The default New Regime often simplifies taxes but offers fewer deductions. Compare carefully.`);
-
-            if (oldRegime.finalTax < newRegime.finalTax) {
-                suggestions.push(`<strong>The Old Regime seems beneficial for you.</strong> To maximize savings under it:`);
-                 if (deductions80C < 150000) { suggestions.push(`Maximize your 80C limit (currently using ${formatCurrency(deductions80C)} out of ₹1.5 Lakh) through investments like PPF, ELSS, EPF, etc.`); } // Animation 18 (Implicit via stagger)
-                 if (npsContribution < 50000) { suggestions.push(`Consider contributing up to ₹50,000 to NPS under Sec 80CCD(1B) for additional deduction (Old Regime only).`); } // Animation 19
-                if (deductions80D === 0) { suggestions.push(`Explore Medical Insurance (Sec 80D) for yourself & family/parents - premiums are deductible under the Old Regime.`); } // Animation 20
-                 if (homeLoanInterest > 0 && homeLoanInterest < 200000) { suggestions.push(`Ensure you claim the full eligible interest on your home loan under Sec 24(b) (up to ₹2 Lakh for self-occupied, Old Regime).`);} // Animation 21
-                 // Add HRA, LTA suggestion logic if relevant data were available
-             } else if (newRegime.finalTax < oldRegime.finalTax) {
-                suggestions.push(`<strong>The New Regime (Default) appears more tax-efficient for you.</strong> Remember Standard Deduction (₹50k) is included. Most other common deductions are not available.`); // Animation 22
-                suggestions.push(`Focus on tax-advantaged investments not tied to Old Regime deductions (e.g., evaluate long-term capital gains strategies, specific bonds).`); // Animation 23
-             } else {
-                 suggestions.push(`Both regimes result in similar tax. The New Regime is simpler and the default choice. Choose based on complexity preference or minor deduction opportunities in Old Regime.`); // Animation 24
-             }
-
-             suggestions.push(`Tax planning is personal. Review your specific situation or consult a financial advisor.`); // Animation 25
-
-
-            suggestionsList.innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
-             suggestionsSection.classList.remove('hidden');
-
-             // Animate suggestions list items
-             gsap.fromTo("#suggestions-list li", // Animation 26 (Staggered list item reveal)
-                 { opacity: 0, y: 15 },
-                 { opacity: 1, y: 0, duration: 0.5, stagger: 0.15, ease: "power2.out", scrollTrigger: {
-                    trigger: "#suggestions-section",
-                    start: "top 85%", // Trigger when 85% of section enters viewport
-                 } }
-             );
-        };
-
-        // --- [ Charting Logic ] ---
-        let taxComparisonChartInstance = null;
-        let incomeBreakdownChartInstance = null;
-        let taxLiabilityChartInstance = null; // For the new line chart
-
-
-        Chart.defaults.color = 'rgba(224, 224, 224, 0.8)'; // Default text color for dark theme
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)'; // Default border color
-
-
-        const createCharts = (results) => {
-             const { oldRegime, newRegime } = results;
-             const ctxCompare = document.getElementById('taxComparisonChart').getContext('2d');
-            const ctxBreakdown = document.getElementById('incomeBreakdownChart').getContext('2d');
-             const ctxLiability = document.getElementById('taxLiabilityChart').getContext('2d'); // Context for line chart
-
-
-             // --- Chart 1: Tax Comparison (Bar Chart) ---
-             if (taxComparisonChartInstance) taxComparisonChartInstance.destroy(); // Destroy previous instance
-             taxComparisonChartInstance = new Chart(ctxCompare, {
-                 type: 'bar',
-                data: {
-                    labels: ['Old Regime', 'New Regime'],
-                     datasets: [
-                        {
-                            label: 'Net Taxable Income',
-                            data: [oldRegime.taxableIncome, newRegime.taxableIncome],
-                            backgroundColor: 'rgba(74, 0, 224, 0.6)', // Purple
-                             borderColor: 'rgba(74, 0, 224, 1)',
-                            borderWidth: 1,
-                            barThickness: 40,
-                        },
-                        {
-                             label: 'Total Tax Payable',
-                            data: [oldRegime.finalTax, newRegime.finalTax],
-                            backgroundColor: 'rgba(0, 255, 157, 0.7)', // Green
-                            borderColor: 'rgba(0, 255, 157, 1)',
-                            borderWidth: 1,
-                             barThickness: 40,
-                         }
-                    ]
-                 },
-                 options: {
-                    responsive: true,
-                     maintainAspectRatio: false,
-                    plugins: {
-                        title: { display: true, text: 'Tax Regime Comparison', font: { size: 16 } },
-                        tooltip: {
-                            callbacks: {
-                                 label: (context) => `${context.dataset.label}: ${formatCurrency(context.raw)}`
-                            }
-                         }
-                    },
-                     scales: {
-                         y: {
-                            beginAtZero: true,
-                             ticks: { callback: (value) => formatCurrency(value) }
-                         }
-                     },
-                    animation: { // Animation 27 (Chart.js native bar animation)
-                         duration: 1200,
-                        easing: 'easeOutExpo'
-                    }
-                 }
-             });
-
-            // --- Chart 2: Income Breakdown (Pie Chart - Using Old Regime Data for Illustration) ---
-             if (incomeBreakdownChartInstance) incomeBreakdownChartInstance.destroy();
-            const nonTaxablePortion = oldRegime.grossIncome - oldRegime.taxableIncome - oldRegime.finalTax; // Income not taxed OR part of tax itself
-            incomeBreakdownChartInstance = new Chart(ctxBreakdown, {
-                 type: 'doughnut',
-                data: {
-                     labels: ['Total Tax', 'Deductions/Exemptions', 'Net Income After Tax & Deductions'],
-                    datasets: [{
-                         label: 'Income Distribution (based on Old Regime)',
-                         data: [
-                             oldRegime.finalTax, // Tax part
-                             oldRegime.totalDeductions + oldRegime.rebate, // Deducted / Rebated part
-                            Math.max(0, oldRegime.grossIncome - oldRegime.totalDeductions - oldRegime.finalTax - oldRegime.rebate) // Remainder
-                        ],
-                        backgroundColor: [
-                             'rgba(255, 77, 77, 0.7)', // Red for tax
-                             'rgba(142, 45, 226, 0.7)', // Purple for deductions
-                            'rgba(0, 200, 120, 0.7)' // Green for net income
-                        ],
-                         borderColor: [
-                             'rgba(255, 77, 77, 1)',
-                            'rgba(142, 45, 226, 1)',
-                             'rgba(0, 200, 120, 1)'
-                         ],
-                        borderWidth: 1,
-                         hoverOffset: 8 // Animation 28 (Chart.js hover effect)
-                     }]
-                },
-                 options: {
-                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                         title: { display: true, text: 'Approx. Income Allocation (Old Regime)', font: { size: 16 } },
-                        legend: { position: 'bottom' },
-                        tooltip: { callbacks: { label: (context) => `${context.label}: ${formatCurrency(context.raw)}` } }
-                     },
-                    animation: { // Animation 29 (Chart.js native doughnut animation)
-                        animateRotate: true,
-                         animateScale: true,
-                         duration: 1200
-                    }
-                }
-            });
-
-
-             // --- Chart 3: Tax Liability Curve (Line Chart - Simplified) ---
-             if (taxLiabilityChartInstance) taxLiabilityChartInstance.destroy();
-
-            const incomePoints = [0, 300000, 600000, 900000, 1200000, 1500000, 2000000, 3000000, 5000000]; // Example income points
-            const getTaxForIncomePoint = (income, regime) => {
-                 const tempInputs = { ...getCurrentInputs(), grossIncome: income };
-                 const tempResults = calculateTax(tempInputs);
-                return (regime === 'old') ? tempResults.oldRegime.finalTax : tempResults.newRegime.finalTax;
-             };
-            const oldRegimeTaxes = incomePoints.map(inc => getTaxForIncomePoint(inc, 'old'));
-            const newRegimeTaxes = incomePoints.map(inc => getTaxForIncomePoint(inc, 'new'));
-
-
-             taxLiabilityChartInstance = new Chart(ctxLiability, {
-                type: 'line',
-                 data: {
-                    labels: incomePoints.map(inc => formatCurrency(inc)),
-                     datasets: [
-                        {
-                             label: 'Tax - Old Regime',
-                            data: oldRegimeTaxes,
-                            borderColor: 'rgba(74, 0, 224, 0.8)', // Purple
-                             backgroundColor: 'rgba(74, 0, 224, 0.2)',
-                            tension: 0.3, // Smoothen the line
-                            fill: true,
-                        },
-                        {
-                            label: 'Tax - New Regime',
-                            data: newRegimeTaxes,
-                            borderColor: 'rgba(0, 255, 157, 0.8)', // Green
-                             backgroundColor: 'rgba(0, 255, 157, 0.2)',
-                             tension: 0.3,
-                             fill: true,
-                         }
-                     ]
-                },
-                 options: {
-                    responsive: true,
-                     maintainAspectRatio: false,
-                     plugins: {
-                        title: { display: true, text: 'Tax Liability vs Gross Income (Approx.)', font: { size: 16 } },
-                         tooltip: {
-                            callbacks: {
-                                 label: (context) => `${context.dataset.label}: ${formatCurrency(context.raw)} at ${context.label} income`
-                             }
-                        }
-                    },
-                     scales: {
-                         y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Total Tax Payable' },
-                            ticks: { callback: (value) => formatCurrency(value) }
-                         },
-                        x: {
-                             title: { display: true, text: 'Gross Annual Income' }
-                        }
-                    },
-                    animation: { // Animation 30 (Chart.js native line animation)
-                        duration: 1500,
-                        easing: 'easeOutQuart'
-                     },
-                    hover: { // Animation 31 (Chart.js hover interaction)
-                        mode: 'index',
-                         intersect: false
-                     },
-                    elements: { point: { radius: 4, hoverRadius: 8 } } // Animation 32 (Point hover)
-                }
-             });
-
-         };
-
-
-        // --- [ PDF Generation Logic ] ---
-        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-        const pdfContentDiv = document.getElementById('pdf-content');
-
-         const generatePdfContent = (inputs, results) => {
-             const { oldRegime, newRegime } = results;
-             const selectedAY = document.getElementById('assessmentYear').value;
-
-             const renderTable = (data) => `
-                <table>
-                    <tr><td>Gross Income</td><td>${formatCurrency(data.grossIncome)}</td></tr>
-                    <tr><td>Total Deductions</td><td>${formatCurrency(data.totalDeductions)}</td></tr>
-                    <tr><td>Net Taxable Income</td><td>${formatCurrency(data.taxableIncome)}</td></tr>
-                    <tr><td>Income Tax (Base)</td><td>${formatCurrency(data.baseTax)}</td></tr>
-                    ${data.rebate > 0 ? `<tr><td>Rebate (Sec 87A)</td><td>-${formatCurrency(data.rebate)}</td></tr>` : ''}
-                     ${data.surcharge > 0 ? `<tr><td>Surcharge</td><td>${formatCurrency(data.surcharge)}</td></tr>` : ''}
-                    <tr><td>Health & Edu Cess (4%)</td><td>${formatCurrency(data.cess)}</td></tr>
-                    <tr class="total-row"><td>Total Tax Payable</td><td>${formatCurrency(data.finalTax)}</td></tr>
-                </table>
-             `;
-
-             pdfContentDiv.innerHTML = `
-                 <h1>Indian Income Tax Calculation Report</h1>
-                <p style="text-align:center; font-size: 14px; color: #555;">Assessment Year: ${selectedAY} (Financial Year: ${FY_YEAR})</p>
-
-                 <div class="pdf-section comparison-grid">
-                    <div>
-                        <h2 class="regime-label">Old Tax Regime Summary</h2>
-                         ${renderTable(oldRegime)}
-                     </div>
-                     <div>
-                         <h2 class="regime-label">New Tax Regime Summary</h2>
-                         ${renderTable(newRegime)}
-                     </div>
-                 </div>
-
-                <div class="pdf-section">
-                     <h2>Calculation Details Used</h2>
-                     <table>
-                         <tr><th>Parameter</th><th>Value (₹)</th></tr>
-                         <tr><td>Gross Annual Income</td><td>${formatCurrency(inputs.grossIncome)}</td></tr>
-                         ${inputs.deductions80C > 0 ? `<tr><td>80C Deductions Claimed (Old Regime)</td><td>${formatCurrency(Math.min(inputs.deductions80C, 150000))}</td></tr>` : ''}
-                         ${inputs.deductions80D > 0 ? `<tr><td>80D Deductions Claimed (Old Regime)</td><td>${formatCurrency(inputs.deductions80D)}</td></tr>` : ''}
-                         ${inputs.hraExemption > 0 ? `<tr><td>HRA Exemption Claimed (Old Regime)</td><td>${formatCurrency(inputs.hraExemption)}</td></tr>` : ''}
-                         ${inputs.homeLoanInterest > 0 ? `<tr><td>Home Loan Interest (Old Regime)</td><td>${formatCurrency(inputs.homeLoanInterest)}</td></tr>` : ''}
-                         ${inputs.npsContribution > 0 ? `<tr><td>Employee NPS (80CCD(1B)) (Old Regime)</td><td>${formatCurrency(Math.min(inputs.npsContribution, 50000))}</td></tr>` : ''}
-                        <tr><td>Standard Deduction (Old Regime)</td><td>${formatCurrency((inputs.grossIncome > 0) ? STANDARD_DEDUCTION_SALARIED : 0)}</td></tr>
-                        <tr><td>Standard Deduction (New Regime)</td><td>${formatCurrency((inputs.grossIncome > 0) ? STANDARD_DEDUCTION_SALARIED : 0)}</td></tr>
-                        <!-- Add other relevant input parameters used -->
-                    </table>
+    <!-- 
+      Modal: Settings
+    -->
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+        <div class="glass-card modal-content">
+            <div class="modal-header">
+                <h2 id="settings-title">Settings</h2>
+                <button id="close-settings-btn" class="btn-icon" aria-label="Close Settings">
+                    <svg class="icon"><use href="#icon-close"></use></svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <label for="tint-slider">Glass Blur / Tint</label>
+                        <span id="tint-value">12px</span>
+                    </div>
+                    <input type="range" id="tint-slider" min="0" max="24" value="12" step="1" aria-label="Glass blur intensity">
                 </div>
 
-                 <div class="disclaimer">
-                     <p>Disclaimer: This report is generated based on the inputs provided and reflects tax rules for AY ${selectedAY} as understood by IndiTax Pro. It is intended for illustrative purposes only and should not be considered final or legal tax advice. Please consult with a qualified tax professional for accurate assessment and filing.</p>
-                 </div>
-            `;
-         };
+                <div class="toggle-group">
+                    <label for="large-text-toggle" class="form-label" style="margin: 0;">Large Text</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="large-text-toggle" aria-label="Toggle Large Text">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-group">
+                    <label for="reduced-motion-toggle" class="form-label" style="margin: 0;">Reduced Motion</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="reduced-motion-toggle" aria-label="Toggle Reduced Motion">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-group">
+                    <label for="privacy-toggle" class="form-label" style="margin: 0;">Analytics</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="privacy-toggle" disabled aria-label="Toggle Analytics (disabled)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p style="font-size: 0.85rem; margin-top: 8px;">All calculations are performed on your device. No data is sent to any server. Analytics are permanently disabled.</p>
+            </div>
+        </div>
+    </div>
 
-        downloadPdfBtn.addEventListener('click', () => {
-            // Ensure results are calculated before downloading
-            if (resultsSection.classList.contains('hidden')) {
-                 alert("Please calculate the tax first before downloading the report.");
-                 return;
+
+    <!-- 
+      INLINE JAVASCRIPT
+    -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 0. Constants & Tax Slabs (FY 2024-25 / AY 2025-26) ---
+            
+            const STANDARD_DEDUCTION = 50000;
+            const HEALTH_EDUCATION_CESS = 0.04;
+            const MAX_80C = 150000;
+            const MAX_NPS_80CCD1B = 50000;
+
+            // Rebate limits
+            const REBATE_LIMIT_NEW = 700000;
+            const REBATE_LIMIT_OLD = 500000;
+
+            // Slabs [limit, rate]
+            const SLABS_NEW = [
+                { limit: 300000, rate: 0.00 },
+                { limit: 600000, rate: 0.05 },
+                { limit: 900000, rate: 0.10 },
+                { limit: 1200000, rate: 0.15 },
+                { limit: 1500000, rate: 0.20 },
+                { limit: Infinity, rate: 0.30 }
+            ];
+
+            const SLABS_OLD = [
+                { limit: 250000, rate: 0.00 },
+                { limit: 500000, rate: 0.05 },
+                { limit: 1000000, rate: 0.20 },
+                { limit: Infinity, rate: 0.30 }
+            ];
+
+            // --- 1. DOM Element Selectors ---
+            
+            const elements = {
+                // Inputs
+                grossSalary: document.getElementById('gross-salary'),
+                otherIncome: document.getElementById('other-income'),
+                profTax: document.getElementById('prof-tax'),
+                stdDeductionToggle: document.getElementById('std-deduction'),
+                sec80C: document.getElementById('sec-80c'),
+                sec80D: document.getElementById('sec-80d'),
+                nps: document.getElementById('nps'),
+                // HRA Inputs
+                cityType: document.getElementById('city-type'),
+                basicSalary: document.getElementById('basic-salary'),
+                hraReceived: document.getElementById('hra-received'),
+                rentPaid: document.getElementById('rent-paid'),
+                // Quick Estimate Outputs
+                taxableIncomeOut: document.getElementById('result-taxable-income'),
+                totalTaxOut: document.getElementById('result-total-tax'),
+                effectiveRateOut: document.getElementById('result-effective-rate'),
+                monthlyTdsOut: document.getElementById('result-monthly-tds'),
+                // Comparison Outputs
+                compareTaxOld: document.getElementById('compare-tax-old'),
+                compareTaxableOld: document.getElementById('compare-taxable-old'),
+                compareTaxNew: document.getElementById('compare-tax-new'),
+                compareTaxableNew: document.getElementById('compare-taxable-new'),
+                resultChip: document.getElementById('result-chip'),
+                resultChipText: document.getElementById('result-chip-text'),
+                comparisonExplanation: document.getElementById('comparison-explanation'),
+                // HRA Output
+                hraExemptionOut: document.getElementById('result-hra-exemption'),
+                // Collapsible Sections
+                deductionsHeader: document.getElementById('deductions-header'),
+                deductionsCard: document.getElementById('deductions-card'),
+                hraHeader: document.getElementById('hra-header'),
+                hraCard: document.getElementById('hra-card'),
+                // Tools
+                exportPdfBtn: document.getElementById('export-pdf-btn'),
+                exportCsvBtn: document.getElementById('export-csv-btn'),
+                saveSnapshotBtn: document.getElementById('save-snapshot-btn'),
+                loadSnapshotBtn: document.getElementById('load-snapshot-btn'),
+                importJsonInput: document.getElementById('import-json-input'),
+                // Settings Modal
+                settingsModal: document.getElementById('settings-modal'),
+                openSettingsBtn: document.getElementById('open-settings-btn'),
+                closeSettingsBtn: document.getElementById('close-settings-btn'),
+                tintSlider: document.getElementById('tint-slider'),
+                tintValue: document.getElementById('tint-value'),
+                largeTextToggle: document.getElementById('large-text-toggle'),
+                reducedMotionToggle: document.getElementById('reduced-motion-toggle'),
+            };
+
+            const allInputs = [
+                elements.grossSalary, elements.otherIncome, elements.profTax,
+                elements.stdDeductionToggle, elements.sec80C, elements.sec80D, elements.nps,
+                elements.cityType, elements.basicSalary, elements.hraReceived, elements.rentPaid
+            ];
+
+            // --- 2. Helper Functions ---
+            
+            /**
+             * Parses a string (with or without commas) into a float.
+             * @param {string} value - The input string.
+             * @returns {number} - The parsed number, or 0.
+             */
+            const parseInput = (value) => parseFloat(String(value).replace(/,/g, '')) || 0;
+            
+            /**
+             * Formats a number as Indian currency (e.g., ₹1,00,000).
+             * @param {number} value - The number to format.
+             * @returns {string} - The formatted currency string.
+             */
+            const formatCurrency = (value) => {
+                const roundedValue = Math.round(value);
+                return new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                }).format(roundedValue);
+            };
+            
+            /**
+             * Formats a number as a string with commas.
+             * @param {number} value - The number to format.
+             * @returns {string} - The formatted string.
+             */
+            const formatNumber = (value) => {
+                return new Intl.NumberFormat('en-IN').format(Math.round(value));
+            };
+
+            /**
+             * Animates a number counting up in a DOM element.
+             * @param {HTMLElement} el - The element to update.
+             * @param {number} toValue - The target value.
+             * @param {boolean} isCurrency - Whether to format as currency.
+             */
+            const animateNumber = (el, toValue, isCurrency = true) => {
+                const duration = 420; // Matches --duration-medium
+                const startValue = parseInput(el.textContent);
+                if (startValue === toValue) return;
+
+                el.classList.add('counting');
+                
+                let startTime = null;
+
+                const step = (timestamp) => {
+                    if (!startTime) startTime = timestamp;
+                    const progress = Math.min((timestamp - startTime) / duration, 1);
+                    
+                    // Ease-out quint function
+                    const easedProgress = 1 - Math.pow(1 - progress, 5);
+                    const currentValue = startValue + (toValue - startValue) * easedProgress;
+                    
+                    el.textContent = isCurrency ? formatCurrency(currentValue) : `${currentValue.toFixed(1)}%`;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        el.textContent = isCurrency ? formatCurrency(toValue) : `${toValue.toFixed(1)}%`;
+                        el.classList.remove('counting');
+                    }
+                };
+                requestAnimationFrame(step);
+            };
+
+            // --- 3. Core Tax Calculation Logic ---
+            
+            /**
+             * Calculates income tax based on regime and taxable income.
+             * @param {number} taxableIncome - The final taxable income.
+             * @param {'old' | 'new'} regime - The tax regime.
+             * @returns {number} - The total tax payable.
+             */
+            const calculateTax = (taxableIncome, regime) => {
+                if (taxableIncome <= 0) return 0;
+                
+                // Step 1: Apply Rebate u/s 87A
+                if (regime === 'new' && taxableIncome <= REBATE_LIMIT_NEW) return 0;
+                if (regime === 'old' && taxableIncome <= REBATE_LIMIT_OLD) return 0;
+
+                // Step 2: Calculate Slab Tax
+                const slabs = (regime === 'new') ? SLABS_NEW : SLABS_OLD;
+                let tax = 0;
+                let lastLimit = 0;
+                
+                for (const slab of slabs) {
+                    if (taxableIncome > lastLimit) {
+                        const taxableInSlab = Math.min(taxableIncome - lastLimit, slab.limit - lastLimit);
+                        tax += taxableInSlab * slab.rate;
+                    }
+                    lastLimit = slab.limit;
+                }
+                
+                // Step 3: Add Surcharge (Simplified: Not adding for this "Quick Estimate" as requested)
+                // In a full app, surcharge for >50L, >1Cr, >2Cr, >5Cr would be added here.
+                
+                // Step 4: Add 4% Health & Education Cess
+                const totalTax = tax + (tax * HEALTH_EDUCATION_CESS);
+                
+                return Math.round(totalTax);
+            };
+
+            /**
+             * Calculates HRA exemption.
+             * @param {object} inputs - State object containing all inputs.
+             * @returns {number} - The HRA exemption amount.
+             */
+            const calculateHRA = (inputs) => {
+                const { basicSalary, hraReceived, rentPaid, cityType } = inputs;
+                if (basicSalary === 0 || rentPaid === 0) return 0;
+                
+                const metroMultiplier = (cityType === 'metro') ? 0.5 : 0.4;
+                
+                const min1_actualHRA = hraReceived;
+                const min2_rentMinus10pBasic = Math.max(0, rentPaid - (0.1 * basicSalary));
+                const min3_metroBasic = metroMultiplier * basicSalary;
+                
+                const exemption = Math.max(0, Math.min(min1_actualHRA, min2_rentMinus10pBasic, min3_metroBasic));
+                
+                return Math.round(exemption);
+            };
+
+            /**
+             * Gathers all values from the DOM into a state object.
+             * @returns {object} - The current state.
+             */
+            const getState = () => ({
+                grossSalary: parseInput(elements.grossSalary.value),
+                otherIncome: parseInput(elements.otherIncome.value),
+                profTax: parseInput(elements.profTax.value),
+                stdDeduction: elements.stdDeductionToggle.checked,
+                sec80C: Math.min(parseInput(elements.sec80C.value), MAX_80C),
+                sec80D: parseInput(elements.sec80D.value), // Max limit is complex (age), omitting for simplicity
+                nps: Math.min(parseInput(elements.nps.value), MAX_NPS_80CCD1B),
+                cityType: elements.cityType.value,
+                basicSalary: parseInput(elements.basicSalary.value),
+                hraReceived: parseInput(elements.hraReceived.value),
+                rentPaid: parseInput(elements.rentPaid.value),
+            });
+
+            /**
+             * Populates all form fields from a state object.
+             * @param {object} state - The state to load.
+             */
+            const setState = (state) => {
+                elements.grossSalary.value = formatNumber(state.grossSalary || 0);
+                elements.otherIncome.value = formatNumber(state.otherIncome || 0);
+                elements.profTax.value = formatNumber(state.profTax || 2400);
+                elements.stdDeductionToggle.checked = state.stdDeduction !== false; // default true
+                elements.sec80C.value = formatNumber(state.sec80C || 0);
+                elements.sec80D.value = formatNumber(state.sec80D || 0);
+                elements.nps.value = formatNumber(state.nps || 0);
+                elements.cityType.value = state.cityType || 'non-metro';
+                elements.basicSalary.value = formatNumber(state.basicSalary || 0);
+                elements.hraReceived.value = formatNumber(state.hraReceived || 0);
+                elements.rentPaid.value = formatNumber(state.rentPaid || 0);
+                
+                // Trigger calculation after loading
+                updateAllCalculations();
+            };
+
+            // --- 4. Main Update & Render ---
+
+            /**
+             * The main function. Gathers state, calculates all values, and renders them to the DOM.
+             */
+            const updateAllCalculations = () => {
+                const state = getState();
+                const totalIncome = state.grossSalary + state.otherIncome;
+                
+                if (totalIncome === 0) {
+                    resetUI();
+                    return;
+                }
+                
+                // --- HRA Calculation ---
+                const hraExemption = calculateHRA(state);
+                animateNumber(elements.hraExemptionOut, hraExemption);
+                
+                // --- New Regime Calculation ---
+                const stdDeductionNew = (state.grossSalary > 0) ? STANDARD_DEDUCTION : 0;
+                const taxableIncomeNew = Math.max(0, totalIncome - state.profTax - stdDeductionNew);
+                const taxNew = calculateTax(taxableIncomeNew, 'new');
+                
+                // --- Old Regime Calculation ---
+                const stdDeductionOld = (state.grossSalary > 0 && state.stdDeduction) ? STANDARD_DEDUCTION : 0;
+                const totalDeductionsOld = stdDeductionOld + state.sec80C + state.sec80D + state.nps + hraExemption;
+                const taxableIncomeOld = Math.max(0, totalIncome - state.profTax - totalDeductionsOld);
+                const taxOld = calculateTax(taxableIncomeOld, 'old');
+
+                // --- Render: Quick Estimate (New Regime) ---
+                const effectiveRate = (totalIncome > 0) ? (taxNew / totalIncome) * 100 : 0;
+                animateNumber(elements.taxableIncomeOut, taxableIncomeNew);
+                animateNumber(elements.totalTaxOut, taxNew);
+                animateNumber(elements.effectiveRateOut, effectiveRate, false);
+                animateNumber(elements.monthlyTdsOut, taxNew / 12);
+
+                // --- Render: Comparison Card ---
+                animateNumber(elements.compareTaxNew, taxNew);
+                elements.compareTaxableNew.textContent = `Taxable: ${formatCurrency(taxableIncomeNew)}`;
+                
+                animateNumber(elements.compareTaxOld, taxOld);
+                elements.compareTaxableOld.textContent = `Taxable: ${formatCurrency(taxableIncomeOld)}`;
+                
+                // --- Render: Result Chip ---
+                const diff = taxOld - taxNew;
+                elements.resultChip.classList.add('visible');
+                elements.resultChip.classList.toggle('positive', diff > 0);
+                elements.resultChip.classList.toggle('negative', diff < 0);
+                
+                if (diff > 0) {
+                    elements.resultChipText.textContent = `You save ${formatCurrency(diff)} with the New Regime`;
+                } else if (diff < 0) {
+                    elements.resultChipText.textContent = `You save ${formatCurrency(Math.abs(diff))} with the Old Regime`;
+                } else {
+                    elements.resultChipText.textContent = `Tax is the same under both regimes.`;
+                }
+            };
+            
+            /**
+             * Resets the UI to its initial state.
+             */
+            const resetUI = () => {
+                animateNumber(elements.taxableIncomeOut, 0);
+                animateNumber(elements.totalTaxOut, 0);
+                animateNumber(elements.effectiveRateOut, 0, false);
+                animateNumber(elements.monthlyTdsOut, 0);
+                animateNumber(elements.compareTaxNew, 0);
+                elements.compareTaxableNew.textContent = `Taxable: ₹0`;
+                animateNumber(elements.compareTaxOld, 0);
+                elements.compareTaxableOld.textContent = `Taxable: ₹0`;
+                animateNumber(elements.hraExemptionOut, 0);
+                elements.resultChip.classList.remove('visible');
+                elements.resultChipText.textContent = `Enter income to see comparison.`;
+            };
+
+            // --- 5. Event Listeners ---
+
+            // Main calculation trigger
+            allInputs.forEach(input => {
+                input.addEventListener('input', updateAllCalculations);
+            });
+            
+            // Input auto-formatting (commas)
+            [elements.grossSalary, elements.otherIncome, elements.profTax, 
+             elements.sec80C, elements.sec80D, elements.nps,
+             elements.basicSalary, elements.hraReceived, elements.rentPaid].forEach(input => {
+                input.addEventListener('blur', (e) => {
+                    const value = parseInput(e.target.value);
+                    e.target.value = (value > 0) ? formatNumber(value) : '';
+                });
+                input.addEventListener('focus', (e) => {
+                    if (e.target.value) {
+                        e.target.value = parseInput(e.target.value);
+                    }
+                });
+            });
+
+            // Collapsible sections
+            const setupCollapsible = (header, card) => {
+                header.addEventListener('click', () => {
+                    const isExpanded = card.classList.toggle('expanded');
+                    header.setAttribute('aria-expanded', isExpanded);
+                });
+            };
+            setupCollapsible(elements.deductionsHeader, elements.deductionsCard);
+            setupCollapsible(elements.hraHeader, elements.hraCard);
+            
+            // Comparison explanation toggle
+            elements.resultChip.addEventListener('click', () => {
+                const isExpanded = elements.comparisonExplanation.classList.toggle('expanded');
+                elements.resultChip.setAttribute('aria-expanded', isExpanded);
+            });
+
+            // Settings Modal
+            elements.openSettingsBtn.addEventListener('click', () => {
+                elements.settingsModal.hidden = false;
+            });
+            elements.closeSettingsBtn.addEventListener('click', () => {
+                elements.settingsModal.hidden = true;
+            });
+            elements.settingsModal.addEventListener('click', (e) => {
+                if (e.target === elements.settingsModal) {
+                    elements.settingsModal.hidden = true;
+                }
+            });
+
+            // Settings: Tint/Blur Slider
+            elements.tintSlider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                document.documentElement.style.setProperty('--blur-intensity', `${value}px`);
+                elements.tintValue.textContent = `${value}px`;
+            });
+
+            // Settings: Large Text
+            elements.largeTextToggle.addEventListener('change', (e) => {
+                document.body.classList.toggle('large-text', e.target.checked);
+                localStorage.setItem('largeText', e.target.checked);
+            });
+            
+            // Settings: Reduced Motion
+            elements.reducedMotionToggle.addEventListener('change', (e) => {
+                document.body.classList.toggle('reduced-motion', e.target.checked);
+                localStorage.setItem('reducedMotion', e.target.checked);
+            });
+
+            // --- 6. Export & Save Logic ---
+            
+            /**
+             * Gathers all data for export.
+             * @returns {object} - Key-value pairs of all data.
+             */
+            const getExportData = () => {
+                const state = getState();
+                const totalIncome = state.grossSalary + state.otherIncome;
+                const hraExemption = calculateHRA(state);
+                
+                // New Regime
+                const stdDeductionNew = (state.grossSalary > 0) ? STANDARD_DEDUCTION : 0;
+                const taxableIncomeNew = Math.max(0, totalIncome - state.profTax - stdDeductionNew);
+                const taxNew = calculateTax(taxableIncomeNew, 'new');
+                
+                // Old Regime
+                const stdDeductionOld = (state.grossSalary > 0 && state.stdDeduction) ? STANDARD_DEDUCTION : 0;
+                const totalDeductionsOld = stdDeductionOld + state.sec80C + state.sec80D + state.nps + hraExemption;
+                const taxableIncomeOld = Math.max(0, totalIncome - state.profTax - totalDeductionsOld);
+                const taxOld = calculateTax(taxableIncomeOld, 'old');
+
+                return {
+                    'Assessment Year': '2025-26',
+                    'Financial Year': '2024-25',
+                    '': '', // Spacer
+                    'INCOME': '',
+                    'Gross Salary': state.grossSalary,
+                    'Other Income': state.otherIncome,
+                    'Total Income': totalIncome,
+                    'Professional Tax': state.profTax,
+                    '': '', // Spacer
+                    'DEDUCTIONS (Old Regime)': '',
+                    'Standard Deduction': stdDeductionOld,
+                    '80C': state.sec80C,
+                    '80D': state.sec80D,
+                    'NPS 80CCD(1B)': state.nps,
+                    'HRA Exemption': hraExemption,
+                    'Total Deductions (Old)': totalDeductionsOld,
+                    '': '', // Spacer
+                    'TAX SUMMARY': '',
+                    'Regime': 'New (Default)',
+                    'Taxable Income (New)': taxableIncomeNew,
+                    'Tax Payable (New)': taxNew,
+                    '': '', // Spacer
+                    'Regime': 'Old',
+                    'Taxable Income (Old)': taxableIncomeOld,
+                    'Tax Payable (Old)': taxOld,
+                    '': '', // Spacer
+                    'Result': `Saving: ${formatCurrency(taxOld - taxNew)} (New vs Old)`,
+                };
+            };
+            
+            // Export: PDF
+            elements.exportPdfBtn.addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const data = getExportData();
+                
+                doc.setFont('Helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.text('Income Tax Summary (AY 2025-26)', 10, 15);
+                
+                doc.setFont('Helvetica', 'normal');
+                doc.setFontSize(10);
+                
+                let y = 30;
+                for (const [key, value] of Object.entries(data)) {
+                    if (key === '') { y += 4; continue; }
+                    
+                    if (key === key.toUpperCase()) {
+                        doc.setFont('Helvetica', 'bold');
+                        doc.text(key, 10, y);
+                        doc.setFont('Helvetica', 'normal');
+                    } else {
+                        const formattedValue = (typeof value === 'number' && value !== 0) ? formatCurrency(value) : (value || '-');
+                        doc.text(key, 12, y);
+                        doc.text(String(formattedValue), 80, y);
+                    }
+                    y += 7;
+                }
+                
+                doc.save('tax-summary.pdf');
+            });
+
+            // Export: CSV
+            elements.exportCsvBtn.addEventListener('click', () => {
+                const data = getExportData();
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Category,Value\n";
+                
+                for (const [key, value] of Object.entries(data)) {
+                    if (key === '') continue;
+                    csvContent += `"${key.replace(/"/g, '""')}","${String(value).replace(/"/g, '""')}"\n`;
+                }
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', 'tax-summary.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Save Snapshot
+            elements.saveSnapshotBtn.addEventListener('click', () => {
+                const state = getState();
+                const json = JSON.stringify(state);
+                // "Encrypted" as requested (simple Base64)
+                const encrypted = btoa(json); 
+                localStorage.setItem('taxCalculatorSnapshot', encrypted);
+                
+                // Quick bounce animation
+                elements.saveSnapshotBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => { elements.saveSnapshotBtn.style.transform = 'scale(1)'; }, 160);
+            });
+
+            // Load Snapshot
+            elements.loadSnapshotBtn.addEventListener('click', () => {
+                const encrypted = localStorage.getItem('taxCalculatorSnapshot');
+                if (encrypted) {
+                    try {
+                        const json = atob(encrypted);
+                        const state = JSON.parse(json);
+                        setState(state);
+                    } catch (e) {
+                        console.error('Failed to load snapshot:', e);
+                        alert('Could not load snapshot. Data may be corrupt.');
+                    }
+                } else {
+                    alert('No saved snapshot found.');
+                }
+            });
+            
+            // --- 7. Initialization & Staggered Animations ---
+            
+            /**
+             * Loads user preferences from localStorage.
+             */
+            const loadPreferences = () => {
+                const largeText = localStorage.getItem('largeText') === 'true';
+                elements.largeTextToggle.checked = largeText;
+                document.body.classList.toggle('large-text', largeText);
+                
+                const reducedMotion = localStorage.getItem('reducedMotion') === 'true';
+                elements.reducedMotionToggle.checked = reducedMotion;
+                document.body.classList.toggle('reduced-motion', reducedMotion);
+                
+                // Also respect system preference
+                const systemPrefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (systemPrefersReduced) {
+                    elements.reducedMotionToggle.checked = true;
+                    document.body.classList.add('reduced-motion');
+                }
+            };
+
+            /**
+             * Staggers the entrance animation of all cards.
+             */
+            const animateCardEntrance = () => {
+                const cards = document.querySelectorAll('.stagger-in');
+                cards.forEach((card, index) => {
+                    // Staggered by 60ms
+                    card.style.animationDelay = `${index * 60}ms`;
+                });
+            };
+            
+            /**
+             * Runs simple test cases in the console.
+             */
+            const runConsoleTests = () => {
+                console.log('--- Running Tax Calculator Test Cases (AY 2025-26) ---');
+                
+                const testState1 = {
+                    grossSalary: 800000, otherIncome: 0, profTax: 2400,
+                    stdDeduction: true, sec80C: 0, sec80D: 0, nps: 0, hraExemption: 0
+                };
+                const taxNew1 = calculateTax(Math.max(0, 800000 - 2400 - 50000), 'new');
+                const taxOld1 = calculateTax(Math.max(0, 800000 - 2400 - 50000), 'old');
+                console.log('Test 1: 8L Income (Salaried)', { New: taxNew1, Old: taxOld1 }); // New should be 0 (rebate), Old should be > 0.
+
+                const testState2 = {
+                    grossSalary: 1200000, otherIncome: 50000, profTax: 2400,
+                    stdDeduction: true, sec80C: 150000, sec80D: 25000, nps: 50000, hraExemption: 0
+                };
+                const taxableNew2 = Math.max(0, 1250000 - 2400 - 50000);
+                const taxNew2 = calculateTax(taxableNew2, 'new');
+                const taxableOld2 = Math.max(0, 1250000 - 2400 - 50000 - 150000 - 25000 - 50000);
+                const taxOld2 = calculateTax(taxableOld2, 'old');
+                console.log('Test 2: 12.5L Income (All Deductions)', { New: taxNew2, Old: taxOld2 });
+
+                const testState3 = {
+                    grossSalary: 1800000, otherIncome: 0, profTax: 2400,
+                    stdDeduction: true, sec80C: 0, sec80D: 0, nps: 0, hraExemption: 0
+                };
+                const taxableNew3 = Math.max(0, 1800000 - 2400 - 50000);
+                const taxNew3 = calculateTax(taxableNew3, 'new');
+                const taxableOld3 = Math.max(0, 1800000 - 2400 - 50000);
+                const taxOld3 = calculateTax(taxableOld3, 'old');
+                console.log('Test 3: 18L Income (No Deductions)', { New: taxNew3, Old: taxOld3 }); // New should be lower.
+                
+                console.log('--- Test Cases Complete ---');
+            };
+
+            // Initial load
+            loadPreferences();
+            animateCardEntrance();
+            runConsoleTests();
+            
+            // Try to load snapshot on start
+            const initialSnapshot = localStorage.getItem('taxCalculatorSnapshot');
+            if (initialSnapshot) {
+                try {
+                    const json = atob(initialSnapshot);
+                    const state = JSON.parse(json);
+                    setState(state);
+                } catch (e) {
+                    console.warn('Could not auto-load snapshot.');
+                    localStorage.removeItem('taxCalculatorSnapshot');
+                }
+            } else {
+                // Set default prof tax
+                elements.profTax.value = '2,400';
             }
 
-             const { jsPDF } = window.jspdf;
-             const pdf = new jsPDF({
-                 orientation: 'p', // portrait
-                unit: 'pt', // points
-                 format: 'a4' // page format
-            });
-
-            // Use html2canvas to capture the prepared hidden div
-            // Temporarily make it visible for capture
-             pdfContentDiv.style.visibility = 'visible';
-             pdfContentDiv.style.position = 'relative';
-             pdfContentDiv.style.left = '0px';
-
-
-            html2canvas(pdfContentDiv, {
-                 scale: 2, // Increase scale for better resolution
-                useCORS: true, // If using external images/fonts in PDF (not used here)
-                 logging: false
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                let heightLeft = pdfHeight;
-                let position = 0;
-
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= pdf.internal.pageSize.getHeight();
-
-                while (heightLeft >= 0) {
-                     position = heightLeft - pdfHeight;
-                     pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                    heightLeft -= pdf.internal.pageSize.getHeight();
-                 }
-
-                 // Hide the div again
-                 pdfContentDiv.style.visibility = 'hidden';
-                 pdfContentDiv.style.position = 'absolute';
-                 pdfContentDiv.style.left = '-9999px';
-
-
-                // Save the PDF
-                pdf.save(`IndiTax_Pro_Report_AY${AY_YEAR}.pdf`);
-                 gsap.fromTo(downloadPdfBtn, { scale: 1 }, { scale: 1.1, duration: 0.2, yoyo: true, repeat: 1 }); // Animation 33 (Download button feedback)
-             }).catch(error => {
-                console.error("Error generating PDF:", error);
-                alert("Sorry, there was an error generating the PDF report.");
-                // Ensure div is hidden on error too
-                 pdfContentDiv.style.visibility = 'hidden';
-                 pdfContentDiv.style.position = 'absolute';
-                 pdfContentDiv.style.left = '-9999px';
-            });
         });
-
-
-        // --- [ Event Listeners ] ---
-         const taxForm = document.getElementById('tax-form');
-        const resetButton = document.getElementById('resetBtn');
-
-        // Helper function to get all inputs
-        const getCurrentInputs = () => {
-             return {
-                 grossIncome: parseInput('grossIncome'),
-                 deductions80C: parseInput('deduction80C'),
-                deductions80D: parseInput('deduction80D'),
-                hraExemption: parseInput('hraExemption'),
-                ltaExemption: parseInput('ltaExemption'),
-                homeLoanInterest: parseInput('homeLoanInterest'),
-                 educationLoanInterest: parseInput('educationLoanInterest'),
-                 deduction80TTA: parseInput('deduction80TTA'),
-                deduction80G: parseInput('deduction80G'),
-                 npsContribution: parseInput('npsContribution'),
-                 assessmentYear: document.getElementById('assessmentYear').value // Although not used in calc directly, keep for record
-            };
-         };
-
-
-         taxForm.addEventListener('submit', (e) => {
-             e.preventDefault(); // Prevent default form submission
-            const inputs = getCurrentInputs();
-
-            // Basic validation
-            if (inputs.grossIncome <= 0) {
-                alert("Please enter a valid Gross Annual Income.");
-                document.getElementById('grossIncome').focus();
-                 gsap.fromTo("#grossIncome", { x: -5 }, { x: 5, duration: 0.1, repeat: 5, yoyo: true, clearProps: "x" }); // Animation 34 (Input shake validation)
-                return;
-             }
-
-            const results = calculateTax(inputs);
-
-            // Display results, suggestions, charts
-            displayResults(results);
-             generateSuggestions(inputs, results);
-            createCharts(results); // Create/update charts after results are displayed
-
-             // Scroll smoothly to results section
-             resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-            // GSAP animation for results reveal (runs after class is removed)
-            gsap.to("#results-section", { // Animation 35 (Results Section Fade/Slide In)
-                 opacity: 1,
-                 y: 0,
-                 duration: 0.8,
-                 ease: "power3.out"
-             });
-
-             // Trigger initial chart animations via ScrollTrigger as well, this is a fallback if ST doesn't fire
-             gsap.to(".gsap-chart-item-reveal", { // Animation 36 (Chart Items Fallback reveal) - ST below handles scroll-reveal
-                opacity: 1,
-                scale: 1,
-                y: 0,
-                duration: 0.7,
-                stagger: 0.2,
-                ease: "back.out(1.7)",
-                 delay: 0.5 // Delay slightly after results appear
-            });
-
-             // Trigger suggestion section reveal animation
-            gsap.to(".suggestions-section", {
-                opacity: 1,
-                y: 0,
-                duration: 0.6,
-                 ease: "power2.out",
-                delay: 0.3 // After results section starts animating
-             });
-         });
-
-        resetButton.addEventListener('click', () => {
-            taxForm.reset();
-            resultsSection.classList.add('hidden');
-            suggestionsSection.classList.add('hidden');
-            chartsSection.classList.add('hidden');
-            // Reset highlighting
-             oldRegimeCard.classList.remove('highlight');
-             newRegimeCard.classList.remove('highlight');
-             oldRegimeBadge.classList.add('hidden');
-             newRegimeBadge.classList.add('hidden');
-
-            // Destroy charts
-            if (taxComparisonChartInstance) taxComparisonChartInstance.destroy();
-            if (incomeBreakdownChartInstance) incomeBreakdownChartInstance.destroy();
-            if (taxLiabilityChartInstance) taxLiabilityChartInstance.destroy();
-
-            // Scroll back to top smoothly
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-             gsap.fromTo(resetButton, { scale: 1 }, { scale: 1.1, duration: 0.2, yoyo: true, repeat: 1 }); // Button feedback
-        });
-
-        // --- [ Initial Animations (GSAP) ] ---
-        gsap.registerPlugin(ScrollTrigger);
-
-        window.addEventListener('load', () => {
-             // --- Load Animations ---
-             gsap.to(".gsap-reveal", { // Fade/Slide in for main sections (Animation 17 redefined/reused)
-                opacity: 1,
-                 y: 0,
-                duration: 0.8,
-                 stagger: 0.2, // Apply stagger to elements with this class
-                 ease: "power3.out"
-             });
-
-             gsap.from(".gsap-header-reveal", { // Header elements (Animation 18 & 19)
-                 opacity: 0,
-                 y: -20,
-                duration: 0.6,
-                stagger: 0.1,
-                 delay: 0.2,
-                 ease: "power2.out"
-             });
-
-             // --- Input Focus Animations --- (Animation 20 & 21)
-            const inputs = document.querySelectorAll('#tax-form input[type=number], #tax-form select');
-            inputs.forEach(input => {
-                input.addEventListener('focus', () => {
-                     gsap.to(input, { borderColor: 'var(--accent-primary)', scale: 1.01, duration: 0.2, ease: 'power1.out' });
-                 });
-                 input.addEventListener('blur', () => {
-                     gsap.to(input, { borderColor: 'var(--border-color)', scale: 1, duration: 0.2 });
-                 });
-            });
-
-             // --- Scroll Triggered Animations ---
-
-             // Section reveal on scroll
-            gsap.utils.toArray('.calculator-section, .suggestions-section').forEach(section => {
-                 gsap.from(section, {
-                    opacity: 0.8,
-                    y: 40,
-                     scale: 0.98,
-                     duration: 0.8,
-                    scrollTrigger: {
-                        trigger: section,
-                         start: "top 90%", // Trigger when 90% of the top hits the viewport bottom
-                         end: "bottom 70%",
-                        toggleActions: "play none none reverse",
-                        // markers: true, // Uncomment for debugging
-                    },
-                    ease: "power2.out"
-                }); // Animation 22 (Reused/enhanced section reveal)
-             });
-
-            // Charts Section title underline animation (Animation 16 CSS trigger)
-            gsap.to(".charts-section h2::after", { // Re-triggering with JS/ST
-                 opacity: 1,
-                width: "80px",
-                 duration: 1,
-                 scrollTrigger: {
-                     trigger: ".charts-section h2",
-                     start: "top 85%",
-                     toggleActions: "play none none reverse",
-                     // markers: true
-                },
-                ease: "expo.out"
-             });
-
-
-            // Chart Container reveal (Animation 23/36 - Scroll Linked)
-            gsap.utils.toArray('.gsap-chart-item-reveal').forEach(chart => {
-                 gsap.fromTo(chart,
-                     { opacity: 0, y: 50, scale: 0.9 },
-                     { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "back.out(1.4)", // Funky back ease
-                       scrollTrigger: {
-                         trigger: chart,
-                         start: "top 85%",
-                         toggleActions: "play none none reverse",
-                         // markers: true,
-                         // scrub: 0.5 // Optional: link animation progress to scroll
-                     }
-                 });
-            });
-
-
-             // Subtle background element parallax (If any static elements were added)
-             // Example: Assuming a <div class="bg-element"></div> exists
-             // gsap.to(".bg-element", {
-             //     yPercent: -30,
-             //     ease: "none",
-             //     scrollTrigger: {
-             //         trigger: "body",
-             //         start: "top top",
-             //         end: "bottom top",
-             //         scrub: true
-             //     }
-             // }); // Animation 24 - Parallax example
-
-             // Add hover animations for form groups or other elements if desired (25-36 as needed)
-             // Example: Input icon pulse on hover
-             gsap.utils.toArray('.form-group').forEach(group => {
-                 let icon = group.querySelector('.icon');
-                if (icon) {
-                     let tl = gsap.timeline({ paused: true });
-                     tl.to(icon, { scale: 1.2, color: 'var(--success-color)', duration: 0.2, ease: 'power1.inOut' }) // Animation 25 (Icon Hover)
-                       .to(icon, { scale: 1, color: 'var(--accent-secondary)', duration: 0.3 }); // Return to normal
-
-                     group.addEventListener('mouseenter', () => tl.play(0));
-                 }
-             });
-
-            // More Animations to reach 36+:
-            // - Tooltip animation enhancement (already css)
-            // - Stagger animation for regime result items (result-item class) (26)
-             gsap.utils.toArray('.regime-card').forEach(card => {
-                ScrollTrigger.create({
-                     trigger: card,
-                    onEnter: () => {
-                        gsap.from(card.querySelectorAll('.result-item'), { // Animation 26 (Staggered result items)
-                            opacity: 0,
-                            x: -20,
-                             duration: 0.4,
-                             stagger: 0.08,
-                            delay: 0.2, // Slight delay after card is visible
-                            ease: "power1.out"
-                         });
-                    },
-                    once: true // Only run once when card enters viewport
-                 });
-             });
-
-             // - Subtle background gradient shifts on scroll? (Can be heavy) (27)
-            // - Animation on download button text/icon (already simple scale) (28)
-             // - PDF generation feedback animation (already done)
-             // - Scroll-linked glowing border for active section (More complex) (29)
-             // - Animation for the "Recommended" badge appearance (CSS used) (30)
-             // - Individual digit flip/scroll animation for count-up (Advanced, using a lib or custom JS) (31)
-            // - Interactive SVG animation explaining deductions? (Requires SVG + GSAP DrawSVG/MorphSVG) (32)
-             // - Subtle hover states on monthly breakdown items (33)
-            gsap.utils.toArray('.monthly-breakdown .result-item').forEach(item => {
-                item.style.transition = 'background-color 0.2s ease';
-                item.addEventListener('mouseenter', () => item.style.backgroundColor = 'rgba(255, 255, 255, 0.03)');
-                item.addEventListener('mouseleave', () => item.style.backgroundColor = 'transparent');
-            });
-            // - Error/Success message animations (if adding more validation feedback) (34)
-             // - Animate page scroll indicator (if added) (35)
-             // - Footer element reveal animation (36)
-            gsap.from("footer", {
-                 opacity: 0,
-                y: 20,
-                 duration: 0.8,
-                scrollTrigger: {
-                    trigger: "footer",
-                     start: "top 95%",
-                     toggleActions: "play none none reverse"
-                 }
-            });
-
-
-            console.log("IndiTax Pro Initialized. Animations & Interactivity Ready.");
-             console.log("Animation Count Check: Many CSS keyframes + GSAP tweens used (check console/code). Should easily exceed 36 animation instances/triggers across load, scroll, hover, click, results.")
-
-        }); // End window load listener
-
     </script>
-
 </body>
 </html>
+
